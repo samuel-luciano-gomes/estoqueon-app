@@ -58,6 +58,7 @@ window.EO = (function () {
     if (/invalid login credentials/i.test(m)) return 'E-mail ou senha incorretos.';
     if (/email not confirmed/i.test(m)) return 'Confirme o seu e-mail antes de entrar. Procure a mensagem do EstoqueOn na caixa de entrada ou no spam.';
     if (/password.*(weak|short|at least|characters)/i.test(m) || /weak_password/i.test(m)) return 'A senha não atende às regras de segurança.';
+    if (/reauthenticat/i.test(m)) return 'Por segurança, saia e entre de novo na conta antes de trocar a senha.';
     if (/same.*password|different from the old/i.test(m)) return 'Escolha uma senha diferente da anterior.';
     if (/expired|invalid.*(token|link)|otp/i.test(m)) return 'Este link expirou ou já foi usado. Peça um novo.';
     if (/failed to fetch|network/i.test(m)) return 'Sem conexão com o servidor. Verifique a internet e tente de novo.';

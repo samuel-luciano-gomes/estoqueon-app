@@ -43,7 +43,7 @@ Em **Authentication**:
 
 - **URL Configuration:** Site URL `https://samuel-luciano-gomes.github.io/estoqueon/`; Redirect URLs `…/estoqueon/app.html`, `…/estoqueon/nova-senha.html` e `http://localhost:4330/*`.
 - **Sign In / Providers → Email:** confirmação de e-mail ligada, senha mínima de 10 caracteres com minúscula, maiúscula, número e símbolo; troca de senha segura ligada.
-- **Emails → Templates:** os modelos estão em `supabase/templates/` (assuntos em `assuntos.json`). Para mudar o visual, edite `ferramentas/gerar-emails.js` e rode `node ferramentas/gerar-emails.js`.
+- **Emails → Templates:** os modelos estão em `supabase/templates/` (assuntos em `assuntos.json`). Para mudar o visual, edite `ferramentas/gerar-emails.js` e rode `node ferramentas/gerar-emails.js`. O Supabase só libera a edição dos modelos depois que o SMTP próprio estiver ligado (veja abaixo); até lá, os e-mails saem com o texto padrão do Supabase.
 
 ### E-mail com remetente próprio
 
