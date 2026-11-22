@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>EstoqueOn</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/app.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script defer src="assets/config.js"></script>
+<script defer src="assets/conta.js"></script>
+<script defer src="assets/app.js"></script>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="brand" id="brand"><span class="mono-mark" aria-hidden="true">·</span><div><div class="brand-name">EstoqueOn</div></div></div>
+    <div class="spacer"></div>
+    <nav class="tabs" id="tabs" aria-label="Seções"></nav>
+    <div class="who" id="who"></div>
+  </div>
+</header>
+<main id="view"><div class="loading">Carregando a sua loja…</div></main>
+<div id="toast" aria-live="polite"></div>
+<dialog id="dlg"></dialog>
+</body>
+</html>

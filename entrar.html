@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Entrar · EstoqueOn</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/base.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="assets/config.js"></script>
+<script defer src="assets/conta.js"></script>
+</head>
+<body>
+<div class="auth">
+  <aside class="auth-side">
+    <a class="logo" href="index.html"><i aria-hidden="true"></i><span>Estoque<b>On</b></span></a>
+    <h1>Bom ver você de novo. <em>Sua vitrine</em> está esperando.</h1>
+    <ul>
+      <li>Preço calculado com insumos e taxa da maquininha.</li>
+      <li>Venda pelo QR da etiqueta, estoque baixando sozinho.</li>
+      <li>Histórico de cada alteração feita na loja.</li>
+    </ul>
+  </aside>
+  <main class="auth-main">
+    <div class="auth-card">
+      <div><span class="eyebrow">Acesso</span><h2>Entrar</h2></div>
+      <div id="msg" hidden></div>
+      <form id="form" novalidate>
+        <div class="field"><label for="email">E-mail</label><input id="email" class="inp" type="email" autocomplete="email" required></div>
+        <div class="field"><label for="senha">Senha</label>
+          <div class="pass-wrap"><input id="senha" class="inp" type="password" autocomplete="current-password" required><button type="button" aria-label="Mostrar senha">Mostrar</button></div></div>
+        <div style="display:flex;justify-content:flex-end"><a href="recuperar.html" style="font-size:.88rem">Esqueci minha senha</a></div>
+        <button class="btn primary block" id="ok" type="submit">Entrar</button>
+      </form>
+      <button class="btn ghost block" id="reenviar" type="button" hidden>Reenviar e-mail de confirmação</button>
+      <p class="auth-foot">Ainda não tem conta? <a href="cadastro.html">Criar conta</a></p>
+    </div>
+  </main>
+</div>
+<script defer>
+document.addEventListener('DOMContentLoaded', async function () {
+  var f = document.getElementById('form'), msg = document.getElementById('msg'), ok = document.getElementById('ok');
+  var reenviar = document.getElementById('reenviar');
+  EO.ligarMostrar();
+  try { if (await EO.sessao()) { location.replace('app.html'); return; } } catch (e) { EO.mostrar(msg, 'warn', EO.erro(e)); }
+  if (/senha=ok/.test(location.search)) EO.mostrar(msg, 'good', 'Senha alterada. Entre com a nova senha.');
+
+  f.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var email = document.getElementById('email').value.trim(), senha = document.getElementById('senha').value;
+    if (!email || !senha) { EO.mostrar(msg, 'bad', 'Preencha e-mail e senha.'); return; }
+    ok.disabled = true; ok.textContent = 'Entrando…'; reenviar.hidden = true;
+    try {
+      var r = await EO.cliente().auth.signInWithPassword({ email: email, password: senha });
+      if (r.error) throw r.error;
+      location.replace('app.html');
+    } catch (e) {
+      EO.mostrar(msg, 'bad', EO.erro(e));
+      if (/not confirmed/i.test(e.message || '')) reenviar.hidden = false;
+      ok.disabled = false; ok.textContent = 'Entrar';
+    }
+  });
+
+  reenviar.addEventListener('click', async function () {
+    var email = document.getElementById('email').value.trim();
+    reenviar.disabled = true;
+    try {
+      var r = await EO.cliente().auth.resend({ type: 'signup', email: email, options: { emailRedirectTo: EO.base() + 'app.html' } });
+      if (r.error) throw r.error;
+      EO.mostrar(msg, 'good', 'Enviamos um novo link de confirmação para ' + email + '.');
+    } catch (e) { EO.mostrar(msg, 'bad', EO.erro(e)); }
+    reenviar.disabled = false;
+  });
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Nova senha · EstoqueOn</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/base.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="assets/config.js"></script>
+<script defer src="assets/conta.js"></script>
+</head>
+<body>
+<div class="auth">
+  <aside class="auth-side">
+    <a class="logo" href="index.html"><i aria-hidden="true"></i><span>Estoque<b>On</b></span></a>
+    <h1>Crie uma senha <em>nova e forte.</em></h1>
+    <ul>
+      <li>Use uma senha que você não usa em outros sites.</li>
+      <li>Um gerenciador de senhas ajuda a guardar.</li>
+    </ul>
+  </aside>
+  <main class="auth-main">
+    <div class="auth-card" id="card">
+      <div><span class="eyebrow">Senha</span><h2>Nova senha</h2></div>
+      <div id="msg" hidden></div>
+      <form id="form" novalidate hidden>
+        <div class="field"><label for="senha">Nova senha</label>
+          <div class="pass-wrap"><input id="senha" class="inp" type="password" autocomplete="new-password" required aria-describedby="regras"><button type="button" aria-label="Mostrar senha">Mostrar</button></div>
+          <div class="meter" aria-hidden="true"><span id="barra"></span></div>
+          <ul class="rules" id="regras" aria-label="Regras da senha"></ul></div>
+        <div class="field"><label for="senha2">Repita a nova senha</label>
+          <div class="pass-wrap"><input id="senha2" class="inp" type="password" autocomplete="new-password" required><button type="button" aria-label="Mostrar senha">Mostrar</button></div></div>
+        <button class="btn primary block" id="ok" type="submit">Salvar nova senha</button>
+      </form>
+      <p class="auth-foot"><a href="recuperar.html">Pedir um novo link</a></p>
+    </div>
+  </main>
+</div>
+<script defer>
+document.addEventListener('DOMContentLoaded', async function () {
+  var f = document.getElementById('form'), msg = document.getElementById('msg'), ok = document.getElementById('ok');
+  var senha = document.getElementById('senha');
+  EO.ligarMostrar();
+  EO.ligarSenha(senha, document.getElementById('regras'), document.getElementById('barra'));
+  var erroUrl = new URLSearchParams(location.hash.slice(1)).get('error_description');
+  var s = null;
+  try { s = await EO.sessao(); } catch (e) {}
+  if (!s) { EO.mostrar(msg, 'bad', erroUrl ? EO.erro(erroUrl) : 'Este link expirou ou já foi usado. Peça um novo.'); return; }
+  f.hidden = false;
+
+  f.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var s1 = senha.value, s2 = document.getElementById('senha2').value;
+    if (!EO.senhaForte(s1)) { EO.mostrar(msg, 'bad', 'A senha precisa cumprir todas as regras abaixo do campo.'); return; }
+    if (s1 !== s2) { EO.mostrar(msg, 'bad', 'As duas senhas não são iguais.'); return; }
+    ok.disabled = true; ok.textContent = 'Salvando…';
+    try {
+      var r = await EO.cliente().auth.updateUser({ password: s1 });
+      if (r.error) throw r.error;
+      await EO.cliente().auth.signOut({ scope: 'others' });
+      EO.mostrar(msg, 'good', 'Senha alterada. Abrindo o sistema…');
+      setTimeout(function () { location.replace('app.html'); }, 1200);
+    } catch (e) {
+      EO.mostrar(msg, 'bad', EO.erro(e));
+      ok.disabled = false; ok.textContent = 'Salvar nova senha';
+    }
+  });
+});
+</script>
+</body>
+</html>

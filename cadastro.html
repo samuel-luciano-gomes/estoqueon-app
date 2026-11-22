@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Criar conta · EstoqueOn</title>
+<link rel="icon" href="assets/icone.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/base.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="assets/config.js"></script>
+<script defer src="assets/conta.js"></script>
+</head>
+<body>
+<div class="auth">
+  <aside class="auth-side">
+    <a class="logo" href="index.html"><i aria-hidden="true"></i><span>Estoque<b>On</b></span></a>
+    <h1>Sua loja de semijoias <em>organizada</em> a partir de hoje.</h1>
+    <ul>
+      <li>Comece no plano Simples. Mude de plano quando a loja crescer.</li>
+      <li>O sistema já vem com sacola, caixinha e cartões na conta do preço.</li>
+      <li>Recebeu convite de uma loja? Use o mesmo e-mail do convite.</li>
+    </ul>
+  </aside>
+  <main class="auth-main">
+    <div class="auth-card" id="card">
+      <div><span class="eyebrow">Nova conta</span><h2>Criar conta</h2></div>
+      <div id="msg" hidden></div>
+      <form id="form" novalidate>
+        <div class="field"><label for="nome">Seu nome</label><input id="nome" class="inp" autocomplete="name" maxlength="80" required></div>
+        <div class="field"><label for="loja">Nome da loja</label><input id="loja" class="inp" autocomplete="organization" maxlength="60" placeholder="Ex.: Ateliê Aurora"><span class="hint">Deixe em branco se você foi convidada para a loja de outra pessoa.</span></div>
+        <div class="field"><label for="email">E-mail</label><input id="email" class="inp" type="email" autocomplete="email" required></div>
+        <div class="field"><label for="senha">Senha</label>
+          <div class="pass-wrap"><input id="senha" class="inp" type="password" autocomplete="new-password" required aria-describedby="regras"><button type="button" aria-label="Mostrar senha">Mostrar</button></div>
+          <div class="meter" aria-hidden="true"><span id="barra"></span></div>
+          <ul class="rules" id="regras" aria-label="Regras da senha"></ul></div>
+        <div class="field"><label for="senha2">Repita a senha</label>
+          <div class="pass-wrap"><input id="senha2" class="inp" type="password" autocomplete="new-password" required><button type="button" aria-label="Mostrar senha">Mostrar</button></div></div>
+        <label class="check"><input type="checkbox" id="aceite"> <span>Li e aceito a <a href="privacidade.html" target="_blank" rel="noopener">política de privacidade</a> e os termos de uso do EstoqueOn.</span></label>
+        <button class="btn primary block" id="ok" type="submit">Criar conta</button>
+      </form>
+      <p class="auth-foot">Já tem conta? <a href="entrar.html">Entrar</a></p>
+    </div>
+  </main>
+</div>
+<script defer>
+document.addEventListener('DOMContentLoaded', function () {
+  var f = document.getElementById('form'), msg = document.getElementById('msg'), ok = document.getElementById('ok');
+  var senha = document.getElementById('senha');
+  EO.ligarMostrar();
+  EO.ligarSenha(senha, document.getElementById('regras'), document.getElementById('barra'));
+
+  f.addEventListener('submit', async function (ev) {
+    ev.preventDefault();
+    var nome = document.getElementById('nome').value.trim();
+    var loja = document.getElementById('loja').value.trim();
+    var email = document.getElementById('email').value.trim().toLowerCase();
+    var s1 = senha.value, s2 = document.getElementById('senha2').value;
+    var falta = [];
+    if (nome.length < 2) falta.push('seu nome');
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) falta.push('um e-mail válido');
+    if (falta.length) { EO.mostrar(msg, 'bad', 'Informe ' + falta.join(' e ') + '.'); return; }
+    if (!EO.senhaForte(s1)) { EO.mostrar(msg, 'bad', 'A senha precisa cumprir todas as regras abaixo do campo.'); senha.focus(); return; }
+    if (s1 !== s2) { EO.mostrar(msg, 'bad', 'As duas senhas não são iguais.'); return; }
+    if (s1.toLowerCase().indexOf(email.split('@')[0]) >= 0) { EO.mostrar(msg, 'bad', 'A senha não pode conter o seu e-mail.'); return; }
+    if (!document.getElementById('aceite').checked) { EO.mostrar(msg, 'bad', 'Para continuar, aceite a política de privacidade.'); return; }
+
+    ok.disabled = true; ok.textContent = 'Criando conta…';
+    try {
+      var r = await EO.cliente().auth.signUp({
+        email: email, password: s1,
+        options: { data: { nome: nome, loja: loja }, emailRedirectTo: EO.base() + 'app.html' }
+      });
+      if (r.error) throw r.error;
+      document.getElementById('card').innerHTML =
+        '<div><span class="eyebrow">Quase lá</span><h2>Confirme o seu e-mail</h2></div>' +
+        '<p class="muted">Se este e-mail ainda não tem conta no EstoqueOn, enviamos um link de confirmação para <b style="color:var(--ink)"></b>. ' +
+        'Abra a mensagem e toque em <b style="color:var(--ink)">Confirmar e-mail</b>. Confira também a caixa de spam.</p>' +
+        '<a class="btn block" href="entrar.html">Ir para o login</a>';
+      document.querySelector('#card p b').textContent = email;
+    } catch (e) {
+      EO.mostrar(msg, 'bad', EO.erro(e));
+      ok.disabled = false; ok.textContent = 'Criar conta';
+    }
+  });
+});
+</script>
+</body>
+</html>
