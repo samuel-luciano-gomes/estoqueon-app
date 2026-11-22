@@ -16,6 +16,7 @@ Sistema de estoque, preço e vendas para lojas de semijoias e acessórios, com a
 | `recuperar.html` / `nova-senha.html` | Recuperação de senha por link |
 | `app.html` | Sistema da loja: painel, produtos, leitor, vendas, histórico, ajustes |
 | `master.html` | Administração: todas as lojas, planos, suspensão e histórico geral |
+| `celular.html` | App de celular (instalável): leitor de QR ao vivo, produtos em cards ou lista, clientes e pós-venda, caixa, nota fiscal |
 | `privacidade.html` | Privacidade (LGPD) e termos de uso |
 
 ## Banco de dados
@@ -28,6 +29,19 @@ Tudo está em `supabase/migrations/20261122000000_estoqueon.sql`:
 - **Histórico:** todo INSERT, UPDATE e DELETE das tabelas da loja vai para `auditoria`, com antes, depois, e-mail e horário. Ninguém escreve nem apaga ali; a dona vê o da loja, o master vê tudo.
 - **Vendas:** `registrar_venda` grava cliente, itens, baixa de estoque e lucro numa só transação, recalculando o preço no banco.
 - **Segurança:** RLS em todas as tabelas. Visitantes sem login só leem a tabela de planos.
+
+`supabase/migrations/20261123000000_app_celular.sql` acrescenta o que o app de celular usa:
+
+- **Caixa (`lancamentos`):** entradas e saídas por categoria e forma. Toda venda lança a entrada sozinha (e a taxa da maquininha como saída). Lançamentos de venda e de nota não podem ser editados pelo app.
+- **Clientes:** aniversário, Instagram, preferências e se aceita ofertas. `contatos` guarda cada mensagem de pós-venda enviada.
+- **Nota fiscal (`notas` + `importar_nota`):** lê o XML da NF-e, associa itens pelo código do fornecedor, código de barras ou nome parecido, cria as peças novas, dá entrada no estoque, atualiza o custo e lança a compra no caixa. A mesma nota não entra duas vezes.
+- **Fotos:** bucket `produtos` no Storage, uma pasta por loja; só a dona envia.
+
+## App de celular
+
+`celular.html` é um PWA: abre no navegador do celular e pode ser instalado na tela inicial (Android: Chrome → Instalar app; iPhone: Safari → Compartilhar → Adicionar à Tela de Início). O leitor usa a câmera ao vivo (BarcodeDetector quando o aparelho tem, jsQR nos demais) e lê QR das etiquetas e código de barras EAN.
+
+Para testar as telas sem login, `teste-celular.html` + `teste-mock.js` imitam o Supabase com dados de exemplo (ficam fora do Git).
 
 ### Tornar alguém master
 
