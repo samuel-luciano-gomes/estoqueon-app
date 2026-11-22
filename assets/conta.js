@@ -77,7 +77,11 @@ window.EO = (function () {
   async function exigirSessao() {
     var s = null;
     try { s = await sessao(); } catch (e) { s = null; }
-    if (!s) { location.replace('entrar.html'); return null; }
+    if (!s) {
+      var pagina = location.pathname.split('/').pop() || 'app.html';
+      location.replace('entrar.html' + (pagina !== 'app.html' ? '?volta=' + encodeURIComponent(pagina) : ''));
+      return null;
+    }
     return s;
   }
   async function sair() {
@@ -85,6 +89,14 @@ window.EO = (function () {
     location.replace('entrar.html');
   }
 
-  return { cliente: cliente, base: base, ligarSenha: ligarSenha, senhaForte: senhaForte, ligarMostrar: ligarMostrar,
+  // Para onde ir depois do login: a página pedida (só páginas do próprio site) ou o app de celular em telas pequenas.
+  function destino() {
+    var v = new URLSearchParams(location.search).get('volta') || '';
+    if (/^[a-z-]+\.html$/.test(v)) return v;
+    var celular = matchMedia('(display-mode: standalone)').matches || matchMedia('(max-width: 700px)').matches;
+    return celular ? 'celular.html' : 'app.html';
+  }
+
+  return { destino: destino, cliente: cliente, base: base, ligarSenha: ligarSenha, senhaForte: senhaForte, ligarMostrar: ligarMostrar,
            erro: erro, mostrar: mostrar, sessao: sessao, exigirSessao: exigirSessao, sair: sair };
 })();

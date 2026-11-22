@@ -3,3 +3,6 @@ node_modules/
 Thumbs.db
 .env
 supabase/.temp/
+teste-celular.html
+teste-mock.js
+teste-nota.xml

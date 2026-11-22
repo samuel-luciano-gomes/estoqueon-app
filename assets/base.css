@@ -22,6 +22,7 @@
   --good:#74C79E;--good-soft:#16291F;--warn:#E5AE55;--warn-soft:#2E2413;--bad:#F09098;--bad-soft:#36191C;color-scheme:dark}
 
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
 button,input,select,textarea{font:inherit;color:inherit}

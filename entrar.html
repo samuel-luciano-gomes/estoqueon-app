@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   var f = document.getElementById('form'), msg = document.getElementById('msg'), ok = document.getElementById('ok');
   var reenviar = document.getElementById('reenviar');
   EO.ligarMostrar();
-  try { if (await EO.sessao()) { location.replace('app.html'); return; } } catch (e) { EO.mostrar(msg, 'warn', EO.erro(e)); }
+  try { if (await EO.sessao()) { location.replace(EO.destino()); return; } } catch (e) { EO.mostrar(msg, 'warn', EO.erro(e)); }
   if (/senha=ok/.test(location.search)) EO.mostrar(msg, 'good', 'Senha alterada. Entre com a nova senha.');
 
   f.addEventListener('submit', async function (ev) {
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     try {
       var r = await EO.cliente().auth.signInWithPassword({ email: email, password: senha });
       if (r.error) throw r.error;
-      location.replace('app.html');
+      location.replace(EO.destino());
     } catch (e) {
       EO.mostrar(msg, 'bad', EO.erro(e));
       if (/not confirmed/i.test(e.message || '')) reenviar.hidden = false;

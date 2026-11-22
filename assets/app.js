@@ -156,7 +156,7 @@ function renderTop() {
   document.getElementById('brand').innerHTML = `<span class="mono-mark" aria-hidden="true">${esc(inicial(m.nome))}</span><div style="min-width:0">${sel}<div class="brand-by">EstoqueOn · plano ${esc(plano().nome)}</div></div>`;
   const tabs = TABS(); if (!tabs.some(t => t[0] === ui.tab)) ui.tab = 'painel';
   document.getElementById('tabs').innerHTML = tabs.map(([k, l]) => `<button data-act="tab" data-k="${k}" ${ui.tab === k ? 'aria-current="page"' : ''}>${ICONS[k]}<span>${l}</span></button>`).join('');
-  document.getElementById('who').innerHTML = (ctx.master ? '<a class="btn ghost" href="master.html">Master</a>' : '') + '<button class="btn ghost" data-act="sair">Sair</button>';
+  document.getElementById('who').innerHTML = (ctx.master ? '<a class="btn ghost" href="master.html">Master</a>' : '') + '<a class="btn ghost" href="celular.html">Celular</a><button class="btn ghost" data-act="sair">Sair</button>';
 }
 function render() {
   const a = document.activeElement; const fid = a && a.id; let ss = null, se = null;
@@ -172,7 +172,7 @@ function render() {
 }
 function tela(titulo, texto, extra) {
   document.getElementById('tabs').innerHTML = '';
-  document.getElementById('who').innerHTML = (ctx.master ? '<a class="btn ghost" href="master.html">Master</a>' : '') + '<button class="btn ghost" data-act="sair">Sair</button>';
+  document.getElementById('who').innerHTML = (ctx.master ? '<a class="btn ghost" href="master.html">Master</a>' : '') + '<a class="btn ghost" href="celular.html">Celular</a><button class="btn ghost" data-act="sair">Sair</button>';
   document.getElementById('view').innerHTML = `<div class="locked"><span class="eyebrow">EstoqueOn</span><h2>${titulo}</h2><p>${texto}</p>${extra || ''}</div>`;
 }
 

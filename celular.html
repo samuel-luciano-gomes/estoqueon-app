@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>EstoqueOn</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#FBF6F5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#161112" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="EstoqueOn">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icone.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/icones/apple-touch-icon.png">
+<link rel="stylesheet" href="assets/base.css">
+<link rel="stylesheet" href="assets/celular.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+<script defer src="assets/config.js"></script>
+<script defer src="assets/conta.js"></script>
+<script defer src="assets/nfe.js"></script>
+<script defer src="assets/celular.js"></script>
+</head>
+<body>
+<header class="m-top">
+  <button class="m-brand" id="brand" data-act="menu" aria-label="Menu da loja"><span class="mono-mark">E</span><span class="m-brand-txt"><b>EstoqueOn</b><small>carregando…</small></span></button>
+  <button class="m-icon" data-act="menu" aria-label="Abrir menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+</header>
+<main id="view" class="m-main"><div class="m-loading">Abrindo a sua loja…</div></main>
+<nav class="m-nav" id="nav" aria-label="Seções"></nav>
+<div id="sheet-fundo" class="sheet-fundo" hidden></div>
+<section id="sheet" class="sheet" role="dialog" aria-modal="true" hidden></section>
+<div id="toast" aria-live="polite"></div>
+</body>
+</html>
