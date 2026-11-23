@@ -807,6 +807,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     sb().auth.onAuthStateChange(ev => { if (ev === 'SIGNED_OUT') location.replace('entrar.html'); });
     if (location.hash.includes('access_token')) history.replaceState(null, '', location.pathname);
     await carregarContexto();
+    EO.vigiarSessao();
     await iniciarLoja();
   } catch (e) {
     console.error(e);

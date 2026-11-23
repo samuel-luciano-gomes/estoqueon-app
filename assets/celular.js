@@ -757,6 +757,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     ctx.user = s.user;
     sb().auth.onAuthStateChange(ev => { if (ev === 'SIGNED_OUT') location.replace('entrar.html'); });
     await carregarContexto();
+    EO.vigiarSessao();
     if (!ctx.lojaId) { document.getElementById('view').innerHTML = '<div class="empty"><h2>Sem loja</h2><p>Sua conta ainda não está em nenhuma loja.</p></div>'; return; }
     const x = ctx.lojas.find(l => l.loja.id === ctx.lojaId);
     if (!x.loja.ativa) { document.getElementById('view').innerHTML = '<div class="empty"><h2>Loja suspensa</h2><p>Fale no WhatsApp (31) 97310-9443.</p></div>'; return; }

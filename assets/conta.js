@@ -84,10 +84,68 @@ window.EO = (function () {
     }
     return s;
   }
-  async function sair() {
-    try { await cliente().auth.signOut(); } catch (e) {}
-    location.replace('entrar.html');
+  // Sai só deste aparelho. O banco recusa a sessão encerrada na hora (ver migração prazo_sessao).
+  async function sair(motivo) {
+    pararVigia();
+    try { await cliente().auth.signOut({ scope: 'local' }); } catch (e) {}
+    try { localStorage.removeItem('eo-login-em'); localStorage.removeItem('eo-ativo-em'); } catch (e) {}
+    var pagina = location.pathname.split('/').pop() || 'app.html';
+    var q = [];
+    if (motivo) q.push('motivo=' + motivo);
+    if (motivo && pagina !== 'app.html' && pagina !== 'entrar.html') q.push('volta=' + encodeURIComponent(pagina));
+    location.replace('entrar.html' + (q.length ? '?' + q.join('&') : ''));
   }
+
+  /* ---------- prazo do login ----------
+     Inatividade: sem tocar, digitar ou rolar por 30 minutos, sai (aviso 1 minuto antes).
+     Prazo máximo: 12 horas depois de entrar, pede login de novo (o banco também recusa depois disso). */
+  var PRAZO = { inatividadeMin: 30, avisoSeg: 60, maxHoras: 12, checarServidorMin: 5 };
+  var vig = { timer: 0, servidor: 0, aviso: null, ultimoToque: 0 };
+  function agora() { return Date.now(); }
+  function lerNum(k) { try { return Number(localStorage.getItem(k)) || 0; } catch (e) { return 0; } }
+  function gravarNum(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) {} }
+  function marcarLogin() { gravarNum('eo-login-em', agora()); gravarNum('eo-ativo-em', agora()); }
+  function atividade() {
+    var t = agora(); if (t - vig.ultimoToque < 5000) return;
+    vig.ultimoToque = t; gravarNum('eo-ativo-em', t); esconderAviso();
+  }
+  function esconderAviso() { if (vig.aviso) { vig.aviso.remove(); vig.aviso = null; } }
+  function mostrarAviso(seg) {
+    if (!vig.aviso) {
+      vig.aviso = document.createElement('div');
+      vig.aviso.className = 'eo-aviso'; vig.aviso.setAttribute('role', 'alertdialog'); vig.aviso.setAttribute('aria-live', 'assertive');
+      vig.aviso.innerHTML = '<div><b>Você ainda está aí?</b><span></span></div><button type="button" class="btn primary">Continuar conectado</button>';
+      vig.aviso.querySelector('button').addEventListener('click', function () { vig.ultimoToque = 0; atividade(); });
+      document.body.appendChild(vig.aviso);
+    }
+    vig.aviso.querySelector('span').textContent = 'Por segurança, você sai em ' + seg + ' segundo' + (seg === 1 ? '' : 's') + ' por falta de uso.';
+  }
+  function checar() {
+    var P = Object.assign({}, PRAZO, window.EO_PRAZO_TESTE || {});
+    var t = agora(), login = lerNum('eo-login-em'), ativo = lerNum('eo-ativo-em');
+    if (!login) { marcarLogin(); return; }
+    if (t - login > P.maxHoras * 3600e3) return sair('prazo');
+    var limite = P.inatividadeMin * 60e3, parado = t - (ativo || login);
+    if (parado >= limite) return sair('inatividade');
+    if (parado >= limite - P.avisoSeg * 1000) mostrarAviso(Math.max(1, Math.ceil((limite - parado) / 1000))); else esconderAviso();
+  }
+  async function checarServidor() {
+    try {
+      var r = await cliente().rpc('sessao_ok');
+      if (!r.error && r.data === false) sair('prazo');
+    } catch (e) {}
+  }
+  function vigiarSessao() {
+    var P = Object.assign({}, PRAZO, window.EO_PRAZO_TESTE || {});
+    if (!lerNum('eo-login-em')) marcarLogin();
+    ['pointerdown', 'keydown', 'touchstart', 'wheel', 'scroll'].forEach(function (ev) { addEventListener(ev, atividade, { passive: true, capture: true }); });
+    document.addEventListener('visibilitychange', function () { if (!document.hidden) { checar(); checarServidor(); } });
+    addEventListener('storage', function (e) { if (e.key === 'eo-ativo-em') esconderAviso(); });
+    clearInterval(vig.timer); vig.timer = setInterval(checar, 1000);
+    clearInterval(vig.servidor); vig.servidor = setInterval(checarServidor, P.checarServidorMin * 60e3);
+    checar(); checarServidor();
+  }
+  function pararVigia() { clearInterval(vig.timer); clearInterval(vig.servidor); esconderAviso(); }
 
   // Para onde ir depois do login: a página pedida (só páginas do próprio site) ou o app de celular em telas pequenas.
   function destino() {
@@ -98,5 +156,6 @@ window.EO = (function () {
   }
 
   return { destino: destino, cliente: cliente, base: base, ligarSenha: ligarSenha, senhaForte: senhaForte, ligarMostrar: ligarMostrar,
-           erro: erro, mostrar: mostrar, sessao: sessao, exigirSessao: exigirSessao, sair: sair };
+           erro: erro, mostrar: mostrar, sessao: sessao, exigirSessao: exigirSessao, sair: sair,
+           marcarLogin: marcarLogin, vigiarSessao: vigiarSessao, PRAZO: PRAZO };
 })();

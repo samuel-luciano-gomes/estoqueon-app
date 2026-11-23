@@ -64,6 +64,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     ok.disabled = true; ok.textContent = 'Salvando…';
     try {
       var r = await EO.cliente().auth.updateUser({ password: s1 });
+      EO.marcarLogin();
       if (r.error) throw r.error;
       await EO.cliente().auth.signOut({ scope: 'others' });
       EO.mostrar(msg, 'good', 'Senha alterada. Abrindo o sistema…');

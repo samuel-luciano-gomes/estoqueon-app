@@ -58,6 +58,7 @@ function render() {
 document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('sair').addEventListener('click', () => EO.sair());
   const s = await EO.exigirSessao(); if (!s) return;
+  EO.vigiarSessao();
   try { await carregar(); render(); }
   catch (e) {
     document.getElementById('view').innerHTML = `<div class="locked"><h2>Acesso restrito</h2><p>Esta área é só da administração do EstoqueOn.</p><a class="btn" href="app.html">Voltar para a minha loja</a></div>`;
