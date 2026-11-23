@@ -18,7 +18,7 @@ function layout({ previa, eyebrow, titulo, texto, botao, link, rodape }) {
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid ${LINE};border-radius:8px;">
     <tr><td style="padding:28px 32px 0 32px;">
       <table role="presentation" cellpadding="0" cellspacing="0"><tr>
-        <td style="width:32px;height:32px;vertical-align:middle;"><img src="https://samuel-luciano-gomes.github.io/estoqueon/assets/icones/icone-192.png" width="32" height="32" alt="EstoqueOn" style="display:block;border:0;border-radius:8px;"></td>
+        <td style="width:32px;height:32px;vertical-align:middle;"><img src="https://samuel-luciano-gomes.github.io/estoqueon/assets/icones/icone-192-v2.png" width="32" height="32" alt="EstoqueOn" style="display:block;border:0;border-radius:8px;"></td>
         <td style="padding-left:10px;font-family:${FONT};font-size:17px;letter-spacing:.5px;color:${INK};font-weight:300;">Estoque<b style="color:${ROSE};font-weight:600;">On</b></td>
       </tr></table>
     </td></tr>

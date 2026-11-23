@@ -13,11 +13,11 @@ const cheio = fs.readFileSync(path.join(__dirname, 'icone-maskable.svg'), 'utf8'
 const png = (svg, tam) => new Resvg(svg, { fitTo: { mode: 'width', value: tam } }).render().asPng();
 
 const arquivos = {
-  'icone-192.png': png(normal, 192),
-  'icone-512.png': png(normal, 512),
-  'icone-maskable-512.png': png(cheio, 512),
-  'apple-touch-icon.png': png(cheio, 180),
-  'favicon-32.png': png(normal, 32)
+  'icone-192-v2.png': png(normal, 192),
+  'icone-512-v2.png': png(normal, 512),
+  'icone-maskable-512-v2.png': png(cheio, 512),
+  'apple-touch-icon-v2.png': png(cheio, 180),
+  'favicon-32-v2.png': png(normal, 32)
 };
 for (const [n, b] of Object.entries(arquivos)) fs.writeFileSync(path.join(saida, n), b);
 console.log('Ícones gerados em', saida);
