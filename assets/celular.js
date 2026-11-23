@@ -265,7 +265,7 @@ function vProdutos() {
   return `
   <div class="m-head"><div><span class="eyebrow">Coleção</span><h2>Produtos</h2></div>
     <div class="seg" role="group" aria-label="Forma de exibir" style="width:auto"><button data-act="vista" data-k="cards" aria-pressed="${ui.vista === 'cards'}" aria-label="Cards" style="padding:8px 12px">${I.cards}</button><button data-act="vista" data-k="lista" aria-pressed="${ui.vista === 'lista'}" aria-label="Lista" style="padding:8px 12px">${I.lista}</button></div></div>
-  ${dona() ? `<div class="dois"><button class="btn primary" data-act="nova-peca">+ Nova peça</button><button class="btn" data-act="nota">Importar nota</button></div>` : ''}
+  ${dona() ? `<div class="dois"><button class="btn primary" data-act="nova-peca">+ Nova peça</button><button class="btn" data-act="nota">Importar nota</button></div><a class="btn" href="app.html#etiquetas">Imprimir etiquetas com QR</a>` : ''}
   <div class="busca">${I.busca}<input id="busca" class="inp" type="search" placeholder="Buscar peça, código ou fornecedor" value="${esc(ui.q)}" data-bind="q" autocomplete="off"></div>
   <div class="chips">${F.map(([k, l]) => `<button class="chip" data-act="filtro" data-k="${esc(k)}" aria-pressed="${ui.filtro === k}">${esc(l)}</button>`).join('')}</div>
   <p class="small muted">${ps.length} de ${D.produtos.length} peças</p>

@@ -149,6 +149,40 @@ dialog::backdrop{background:rgba(30,18,22,.45)}
 .hist-what .diff s{color:var(--bad);text-decoration-thickness:1px}
 .hist-what .diff ins{color:var(--good);text-decoration:none}
 
+/* impressão de etiquetas */
+.etq{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.folhas{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
+.folhas .pal{padding:12px}
+.previa{overflow:hidden;background:var(--surface-2);border-radius:3px;padding:12px;display:grid;justify-items:center;gap:10px}
+.previa-a4 .folha{zoom:.42;box-shadow:0 6px 24px rgba(0,0,0,.18)}
+.previa-t .folha{zoom:1.3;box-shadow:0 3px 10px rgba(0,0,0,.15)}
+.folha{background:#fff;color:#111;box-sizing:border-box;font-family:var(--f-body)}
+.folha-a4{width:210mm;height:297mm;display:grid;align-content:start}
+.folha-t{display:grid;place-items:center}
+.et{box-sizing:border-box;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;overflow:hidden;color:#111}
+.et-qr{display:block;image-rendering:pixelated}
+.et-tx{min-width:0;display:grid;line-height:1.15}
+.et-loja{font-family:var(--f-display);font-weight:600;text-transform:uppercase;letter-spacing:.12em;color:#8a6a3c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.et-nome{font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.et-sku{font-family:var(--f-mono)}
+.et-preco{font-weight:700}
+.et-p{padding:1.2mm 1.5mm;column-gap:1.5mm}.et-p .et-qr{width:17mm;height:17mm}.et-p .et-sku{font-size:6.5pt;font-weight:600}.et-p .et-preco{font-size:7.5pt}
+.et-m{padding:2mm 2.5mm;column-gap:2mm}.et-m .et-qr{width:26mm;height:26mm}.et-m .et-loja{font-size:5.5pt}.et-m .et-nome{font-size:8pt;margin:.6mm 0}.et-m .et-sku{font-size:6.5pt}.et-m .et-preco{font-size:9pt;margin-top:.8mm}.et-m .et-cartao{font-size:6pt}
+.et-g{padding:2.5mm 4mm;column-gap:4mm}.et-g .et-qr{width:31mm;height:31mm}.et-g .et-loja{font-size:7pt}.et-g .et-nome{font-size:11pt;margin:1mm 0}.et-g .et-sku{font-size:8pt}.et-g .et-preco{font-size:13pt;margin-top:1mm}.et-g .et-cartao{font-size:8pt}
+.folha-t .et-m .et-qr{width:22mm;height:22mm}
+.folha-t .et-p .et-qr{width:19mm;height:19mm}
+#impressao{display:none}
+@media print{
+  html,body{background:#fff!important}
+  body>*:not(#impressao){display:none!important}
+  body::before{display:none!important}
+  #impressao{display:block}
+  #impressao .folha{break-after:page;page-break-after:always;box-shadow:none;zoom:1}
+  #impressao .folha:last-child{break-after:auto;page-break-after:auto}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+@media (max-width:980px){.etq{grid-template-columns:minmax(0,1fr)}}
+
 /* ajustes: menu de seções + conteúdo */
 .aj{display:grid;grid-template-columns:250px minmax(0,1fr);gap:28px;align-items:start}
 .aj-nav{position:sticky;top:calc(84px + env(safe-area-inset-top,0px));display:grid;gap:4px}

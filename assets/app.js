@@ -251,7 +251,7 @@ function vProdutos() {
   const F = [['todos', 'Todos'], ['baixo', 'Estoque baixo'], ['parado', 'Parados'], ['abaixo', 'Preço abaixo do calculado']];
   return `
   <div class="head"><div><span class="eyebrow">Coleção</span><h2>Produtos</h2><p class="muted">${S.produtos.length} peças cadastradas · rateio de insumos de ${brl(rateio(S))} por peça.</p></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="etq-open" ${S.produtos.length ? '' : 'disabled'}>Etiquetas${ui.sel.length ? ' (' + ui.sel.length + ')' : ''}</button>${dona() ? '<button class="btn primary" data-act="novo">+ Nova peça</button>' : ''}</div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="etq-open" ${S.produtos.length ? '' : 'disabled'}>Imprimir etiquetas${ui.sel.length ? ' (' + ui.sel.length + ')' : ''}</button>${dona() ? '<button class="btn primary" data-act="novo">+ Nova peça</button>' : ''}</div></div>
   <div class="card grid">
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center"><input id="busca" class="inp" style="max-width:320px" placeholder="Buscar por nome, código ou fornecedor" value="${esc(ui.q)}" data-bind="q">
       <div class="chips">${F.map(([k, l]) => `<button class="chip" data-act="filtro" data-k="${k}" aria-pressed="${ui.filtro === k}">${l}</button>`).join('')}</div></div>
@@ -275,21 +275,103 @@ function vProdutos() {
 function etiqueta(p, comPreco) {
   return `<div class="label"><div class="qr" data-qr="${esc(p.sku)}"></div><div style="min-width:0"><div class="lb">${esc(S.marca.nome)}</div><div class="ln">${esc(p.nome || 'Nome da peça')}</div><div class="ls">${esc(p.sku)}</div>${comPreco ? `<div class="lp num">${brl(vistaPraticado(S, p))} à vista<br>${brl(cartaoDe(S, vistaPraticado(S, p)))} em até 3x</div>` : ''}</div></div>`;
 }
+
+/* ---------- impressão de etiquetas ----------
+   Medidas em mm das folhas A4 mais vendidas (padrão Avery/Pimaco) e de rolos de impressora térmica. */
+const FOLHAS = {
+  'a4-65': { nome: 'A4 · 65 por folha', medida: '38,1 × 21,2 mm', desc: 'Pequena: QR, código e preço', tipo: 'a4', cols: 5, rows: 13, w: 38.1, h: 21.2, top: 10.7, left: 4.7, gx: 2.5, gy: 0, estilo: 'p' },
+  'a4-21': { nome: 'A4 · 21 por folha', medida: '63,5 × 38,1 mm', desc: 'Média: loja, nome, código e preços', tipo: 'a4', cols: 3, rows: 7, w: 63.5, h: 38.1, top: 15.15, left: 7.2, gx: 2.5, gy: 0, estilo: 'm' },
+  'a4-14': { nome: 'A4 · 14 por folha', medida: '99,1 × 38,1 mm', desc: 'Grande: tudo, com letra maior', tipo: 'a4', cols: 2, rows: 7, w: 99.1, h: 38.1, top: 15.15, left: 4.65, gx: 2.5, gy: 0, estilo: 'g' },
+  't-50x30': { nome: 'Térmica 50 × 30 mm', medida: 'rolo, uma por etiqueta', desc: 'Para impressora de etiquetas', tipo: 't', w: 50, h: 30, estilo: 'm' },
+  't-40x25': { nome: 'Térmica 40 × 25 mm', medida: 'rolo, uma por etiqueta', desc: 'Para impressora de etiquetas', tipo: 't', w: 40, h: 25, estilo: 'p' }
+};
+const ETQ_PADRAO = { folha: 'a4-21', preco: true, inicio: 1, modo: 'um', so: 'todas' };
+function etqCfg() {
+  if (!ui.etq) { let s = {}; try { s = JSON.parse(localStorage.getItem('eo-etq') || '{}'); } catch (e) {} ui.etq = { ...ETQ_PADRAO, ...s, inicio: 1 }; }
+  if (!FOLHAS[ui.etq.folha]) ui.etq.folha = 'a4-21';
+  return ui.etq;
+}
+function etqGuardar() { try { const { folha, preco, modo } = ui.etq; localStorage.setItem('eo-etq', JSON.stringify({ folha, preco, modo })); } catch (e) {} }
+function etqPecas() {
+  const c = etqCfg();
+  return c.so === 'selecionadas' && ui.sel.length ? ui.sel.map(s => prod(S, s)).filter(Boolean) : S.produtos;
+}
+function etqLista() {
+  const c = etqCfg(); const lista = [];
+  etqPecas().forEach(p => {
+    const n = c.modo === 'estoque' ? Math.max(0, p.estoque) : c.modo === 'manual' ? (ui.copias[p.sku] != null ? ui.copias[p.sku] : 1) : 1;
+    for (let i = 0; i < n; i++) lista.push(p);
+  });
+  return lista;
+}
+const qrCache = {};
+function qrDataURL(texto) {
+  if (qrCache[texto]) return qrCache[texto];
+  if (!window.QRCode) return '';
+  const d = document.createElement('div');
+  try { new QRCode(d, { text: texto, width: 256, height: 256, colorDark: '#000000', colorLight: '#ffffff', correctLevel: QRCode.CorrectLevel.M }); } catch (e) { return ''; }
+  const cv = d.querySelector('canvas'); qrCache[texto] = cv ? cv.toDataURL('image/png') : '';
+  return qrCache[texto];
+}
+function etqHTML(p, f, preco) {
+  const v = vistaPraticado(S, p);
+  const qr = qrDataURL(p.sku);
+  return `<div class="et et-${f.estilo}" style="width:${f.w}mm;height:${f.h}mm">
+    ${qr ? `<img class="et-qr" src="${qr}" alt="">` : `<span class="et-qr"></span>`}
+    <div class="et-tx">${f.estilo !== 'p' ? `<div class="et-loja">${esc(S.marca.nome)}</div><div class="et-nome">${esc(p.nome)}</div>` : ''}
+      <div class="et-sku">${esc(p.sku)}</div>
+      ${preco ? `<div class="et-preco">${brl(v)}</div>${f.estilo !== 'p' ? `<div class="et-cartao">${brl(cartaoDe(S, v))} em até 3x</div>` : ''}` : ''}</div></div>`;
+}
+function etqFolhas(lista, f, c, limiteFolhas) {
+  if (f.tipo === 't') return lista.slice(0, limiteFolhas || lista.length).map(p => `<div class="folha folha-t" style="width:${f.w}mm;height:${f.h}mm">${etqHTML(p, f, c.preco)}</div>`).join('');
+  const porFolha = f.cols * f.rows; const vazias = Math.min(porFolha - 1, Math.max(0, (c.inicio || 1) - 1));
+  const itens = Array(vazias).fill(null).concat(lista); const folhas = [];
+  for (let i = 0; i < itens.length; i += porFolha) folhas.push(itens.slice(i, i + porFolha));
+  return folhas.slice(0, limiteFolhas || folhas.length).map(fl => `<div class="folha folha-a4" style="padding:${f.top}mm 0 0 ${f.left}mm;grid-template-columns:repeat(${f.cols},${f.w}mm);grid-auto-rows:${f.h}mm;column-gap:${f.gx}mm;row-gap:${f.gy}mm">
+    ${fl.map(p => p ? etqHTML(p, f, c.preco) : `<div class="et et-vazia" style="width:${f.w}mm;height:${f.h}mm"></div>`).join('')}</div>`).join('');
+}
 function vEtiquetas() {
-  const ps = (ui.sel.length ? ui.sel.map(s => prod(S, s)).filter(Boolean) : S.produtos);
-  const labels = []; ps.forEach(p => { const n = ui.copias[p.sku] != null ? ui.copias[p.sku] : 1; for (let i = 0; i < n; i++) labels.push(p); });
-  const shown = labels.slice(0, 60);
+  const c = etqCfg(); const f = FOLHAS[c.folha]; const ps = etqPecas(); const lista = etqLista();
+  const porFolha = f.tipo === 'a4' ? f.cols * f.rows : 1;
+  const folhas = f.tipo === 'a4' ? Math.ceil((lista.length + Math.max(0, c.inicio - 1)) / porFolha) : lista.length;
   return `
-  <div class="head"><div><span class="eyebrow">Produtos</span><h2>Etiquetas</h2><p class="muted">QR com o código da peça e o nome da sua loja. ${ui.sel.length ? ui.sel.length + ' peça(s) selecionada(s).' : 'Todas as peças.'}</p></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn" data-act="etq-estoque">Uma por peça em estoque</button><button class="btn" data-act="etq-close">Voltar</button></div></div>
-  <div class="card grid">
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Peça</th><th>Código</th><th>Cópias</th></tr></thead><tbody>
-    ${ps.map(p => `<tr><td>${esc(p.nome)}</td><td class="mono">${esc(p.sku)}</td><td><input id="cop-${esc(p.sku)}" type="number" min="0" max="60" class="inp sm num" style="width:72px" value="${ui.copias[p.sku] != null ? ui.copias[p.sku] : 1}" data-bind="copia" data-sku="${esc(p.sku)}"></td></tr>`).join('')}
-    </tbody></table></div>
-    <div class="alert warn small"><span>Para imprimir, use o atalho Ctrl+P do navegador com folha A4 adesiva, ou envie para a impressora térmica.</span></div>
-    <div class="sheet">${shown.map(p => etiqueta(p, true)).join('') || '<div class="empty">Nenhuma etiqueta.</div>'}</div>
-    ${labels.length > 60 ? `<div class="hint">Mostrando 60 de ${labels.length} etiquetas.</div>` : ''}
+  <div class="head"><div><span class="eyebrow">Produtos</span><h2>Imprimir etiquetas</h2><p class="muted">${lista.length} etiqueta${lista.length === 1 ? '' : 's'} · ${f.tipo === 'a4' ? folhas + ' folha' + (folhas === 1 ? '' : 's') + ' A4' : 'rolo da térmica'}</p></div>
+    <div class="acoes"><button class="btn" data-act="etq-close">Voltar</button><button class="btn primary" data-act="etq-imprimir" ${lista.length ? '' : 'disabled'}>Imprimir ${lista.length} etiqueta${lista.length === 1 ? '' : 's'}</button></div></div>
+  <div class="etq">
+    <div class="grid" style="align-content:start">
+      <div class="card grid">${ajTitulo('O que imprimir', '')}
+        ${ui.sel.length ? `<div class="seg" role="group" aria-label="Quais peças"><button data-act="etq-so" data-k="todas" aria-pressed="${c.so !== 'selecionadas'}">Todas as peças (${S.produtos.length})</button><button data-act="etq-so" data-k="selecionadas" aria-pressed="${c.so === 'selecionadas'}">Selecionadas (${ui.sel.length})</button></div>` : `<p class="small muted">Todas as ${S.produtos.length} peças. Para imprimir só algumas, marque-as na lista de produtos.</p>`}
+        <div class="seg" role="group" aria-label="Quantas de cada"><button data-act="etq-modo" data-k="um" aria-pressed="${c.modo === 'um'}">Uma de cada</button><button data-act="etq-modo" data-k="estoque" aria-pressed="${c.modo === 'estoque'}">Uma por peça em estoque</button><button data-act="etq-modo" data-k="manual" aria-pressed="${c.modo === 'manual'}">Escolher</button></div>
+        ${c.modo === 'manual' ? `<div class="tbl-wrap" style="max-height:320px;overflow:auto"><table class="tbl"><thead><tr><th>Peça</th><th class="c">Estoque</th><th class="c">Cópias</th></tr></thead><tbody>
+          ${ps.map(p => `<tr><td>${esc(p.nome)}<span class="cellnote mono">${esc(p.sku)}</span></td><td class="c num">${p.estoque}</td><td class="c"><input id="cop-${esc(p.sku)}" type="number" min="0" max="999" class="inp sm num" style="width:72px" value="${ui.copias[p.sku] != null ? ui.copias[p.sku] : 1}" data-bind="copia" data-sku="${esc(p.sku)}"></td></tr>`).join('')}
+        </tbody></table></div>` : ''}
+      </div>
+      <div class="card grid">${ajTitulo('Folha ou rolo', 'As medidas seguem as folhas A4 de etiqueta mais vendidas (Pimaco e Avery).')}
+        <div class="folhas">${Object.entries(FOLHAS).map(([k, x]) => `<button class="pal" data-act="etq-folha" data-k="${k}" aria-pressed="${c.folha === k}"><span><b>${x.nome}</b><span class="cellnote">${x.medida} · ${x.desc}</span></span></button>`).join('')}</div>
+        <div class="grid g2" style="align-items:end">
+          <label class="opcao"><input type="checkbox" class="cb" id="etq-preco" data-bind="etq-preco" ${c.preco ? 'checked' : ''}> Mostrar o preço na etiqueta</label>
+          ${f.tipo === 'a4' ? `<div class="field"><label for="etq-inicio">Começar na etiqueta nº</label><input id="etq-inicio" class="inp num" type="number" min="1" max="${porFolha}" value="${c.inicio}" data-bind="etq-inicio"><span class="hint">Para aproveitar uma folha já usada.</span></div>` : ''}
+        </div>
+      </div>
+    </div>
+    <div class="card grid" style="align-content:start">${ajTitulo('Prévia', f.tipo === 'a4' ? 'Primeira folha, em tamanho reduzido.' : 'Primeiras etiquetas do rolo.')}
+      <div class="previa previa-${f.tipo}">${lista.length ? etqFolhas(lista, f, c, f.tipo === 'a4' ? 1 : 3) : '<div class="empty">Nenhuma etiqueta para imprimir.</div>'}</div>
+      <span class="hint">Na janela de impressão, escolha tamanho <b>${f.tipo === 'a4' ? 'A4' : f.w + ' × ' + f.h + ' mm'}</b>, margens <b>nenhuma</b> e escala <b>100%</b> (sem "ajustar à página").</span>
+    </div>
   </div>`;
+}
+function imprimirEtiquetas() {
+  const c = etqCfg(); const f = FOLHAS[c.folha]; const lista = etqLista(); if (!lista.length) return;
+  document.getElementById('impressao')?.remove(); document.getElementById('pagina-impressao')?.remove();
+  const st = document.createElement('style'); st.id = 'pagina-impressao';
+  st.textContent = f.tipo === 'a4' ? '@page{size:A4;margin:0}' : `@page{size:${f.w}mm ${f.h}mm;margin:0}`;
+  document.head.appendChild(st);
+  const box = document.createElement('div'); box.id = 'impressao'; box.innerHTML = etqFolhas(lista, f, c);
+  document.body.appendChild(box);
+  const limpar = () => { box.remove(); st.remove(); removeEventListener('afterprint', limpar); };
+  addEventListener('afterprint', limpar);
+  const imgs = [...box.querySelectorAll('img')];
+  Promise.all(imgs.map(i => i.complete ? 0 : new Promise(r => { i.onload = i.onerror = r; }))).then(() => setTimeout(() => window.print(), 50));
 }
 function drawQR(root) {
   root.querySelectorAll('[data-qr]').forEach(el => {
@@ -695,8 +777,11 @@ const A = {
   abrir: (b, e) => { if (e.target.closest('input')) return; abrirProduto(b.dataset.sku); },
   sel: (b, e) => { e.stopPropagation(); const s = b.dataset.sku; ui.sel = ui.sel.includes(s) ? ui.sel.filter(x => x !== s) : [...ui.sel, s]; render(); },
   novo: () => abrirProduto(null),
-  'etq-open': () => { ui.etiquetas = true; render(); }, 'etq-close': () => { ui.etiquetas = false; render(); },
-  'etq-estoque': () => { (ui.sel.length ? ui.sel : S.produtos.map(p => p.sku)).forEach(s => ui.copias[s] = Math.max(0, estoque(S, s))); render(); },
+  'etq-open': () => { ui.etiquetas = true; if (ui.sel.length) etqCfg().so = 'selecionadas'; render(); window.scrollTo(0, 0); }, 'etq-close': () => { ui.etiquetas = false; render(); },
+  'etq-so': b => { etqCfg().so = b.dataset.k; render(); },
+  'etq-modo': b => { etqCfg().modo = b.dataset.k; etqGuardar(); render(); },
+  'etq-folha': b => { const c = etqCfg(); c.folha = b.dataset.k; c.inicio = 1; etqGuardar(); render(); },
+  'etq-imprimir': () => imprimirEtiquetas(),
   mode: b => { ui.mode = b.dataset.k; render(); },
   paleta: b => { S.marca.paleta = b.dataset.k; render(); salvarLoja({ paleta: b.dataset.k }); toast('Paleta ' + PALETAS[b.dataset.k].nome + ' aplicada'); },
   bipar: () => { const i = document.getElementById('codigo'); bipe(i.value); const j = document.getElementById('codigo'); if (j) { j.value = ''; j.focus(); } },
@@ -788,6 +873,7 @@ document.addEventListener('change', e => {
   else if (k === 'parc') { ui.parc = Number(t.value); render(); }
   else if (k === 'cliente') { ui.cliente = t.value; render(); }
   else if (k === 'arred') { S.settings.arredondar = t.checked; salvarLoja({ arredondar: t.checked }); render(); }
+  else if (k === 'etq-preco') { etqCfg().preco = t.checked; etqGuardar(); render(); }
   else if (k === 'preco') { const c = ui.cart.find(x => x.sku === t.dataset.sku); c.preco = Math.max(0, numIn(t.value)); c.manual = true; render(); }
   else if (k === 'ins' && t.dataset.k === 'tipo') { const i = S.insumos.find(x => x.id === Number(t.dataset.id)); i.tipo = t.value; salvarInsumo(i); }
   else if (k === 'papel') { sb().from('membros').update({ papel: t.value }).eq('loja_id', ctx.lojaId).eq('user_id', t.dataset.uid).then(r => { if (r.error) falha(r.error); else toast('Papel atualizado'); carregarEquipe(); }); }
@@ -807,7 +893,8 @@ document.addEventListener('input', e => {
   else if (k === 'marca') { const f = t.dataset.k; S.marca[f] = t.value; render();
     const col = { nome: 'nome', assinatura: 'assinatura', insta: 'instagram' }[f];
     if (f !== 'nome' || t.value.trim().length >= 2) depois('marca-' + f, () => salvarLoja({ [col]: f === 'nome' ? t.value.trim() : t.value })); }
-  else if (k === 'copia') { ui.copias[t.dataset.sku] = Math.min(60, Math.max(0, Math.round(numIn(t.value)))); const sc = window.scrollY; render(); window.scrollTo(0, sc); }
+  else if (k === 'copia') { ui.copias[t.dataset.sku] = Math.min(999, Math.max(0, Math.round(numIn(t.value)))); const sc = window.scrollY; render(); window.scrollTo(0, sc); }
+  else if (k === 'etq-inicio') { const c = etqCfg(), f = FOLHAS[c.folha]; c.inicio = Math.min(f.cols * f.rows, Math.max(1, Math.round(numIn(t.value)) || 1)); const sc = window.scrollY; render(); window.scrollTo(0, sc); }
   else if (k === 'set') { const v = numIn(t.value); const key = t.dataset.k; if (key === 'markup' && (v <= 0 || v >= 20)) return; if ((key === 'taxaCartao' || key === 'imposto') && (v < 0 || v >= 100)) return;
     S.settings[key] = v; render(); const col = { markup: 'markup', taxaCartao: 'taxa_cartao', imposto: 'imposto' }[key]; depois('set-' + key, () => salvarLoja({ [col]: v })); }
   else if (k === 'sim') { ui.simCusto = t.value; render(); }
@@ -865,6 +952,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (location.hash.includes('access_token')) history.replaceState(null, '', location.pathname);
     await carregarContexto();
     EO.vigiarSessao();
+    if (location.hash === '#etiquetas') { ui.tab = 'produtos'; ui.etiquetas = true; history.replaceState(null, '', location.pathname); }
     await iniciarLoja();
   } catch (e) {
     console.error(e);
