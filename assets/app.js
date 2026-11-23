@@ -575,8 +575,8 @@ function vPlano() {
     ${uso('Usuárias nesta loja', e.membros.length + e.convites.length, pl.max_usuarias)}
     ${uso('Lojas', minhas.length, pl.max_lojas)}</div>
   <div class="card grid">${ajTitulo('Comparar planos', '')}
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Plano</th><th class="r">Mensal</th><th class="r">Peças</th><th class="r">Usuárias</th><th class="r">Lojas</th></tr></thead><tbody>
-    ${ctx.planos.map(p => `<tr><td>${esc(p.nome)} ${p.id === S.loja.plano ? '<span class="pill accent">atual</span>' : ''}</td><td class="r num">${brl(p.preco_mensal)}</td><td class="r num">${p.max_pecas || 'ilimitadas'}</td><td class="r num">${p.max_usuarias}</td><td class="r num">${p.max_lojas}</td></tr>`).join('')}
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Plano</th><th class="c">Mensal</th><th class="c">Peças</th><th class="c">Usuárias</th><th class="c">Lojas</th></tr></thead><tbody>
+    ${ctx.planos.map(p => `<tr><td>${esc(p.nome)} ${p.id === S.loja.plano ? '<span class="pill accent">atual</span>' : ''}</td><td class="c num">${brl(p.preco_mensal)}</td><td class="c num">${p.max_pecas || 'ilimitadas'}</td><td class="c num">${p.max_usuarias}</td><td class="c num">${p.max_lojas}</td></tr>`).join('')}
     </tbody></table></div></div>
   <div class="card grid">${ajTitulo('Suas lojas', pl.max_lojas > 1 ? 'Cada loja tem marca, estoque, equipe e caixa próprios.' : 'O plano Gold permite até 3 lojas.')}
     <div class="tbl-wrap"><table class="tbl"><tbody>${minhas.map(x => `<tr><td>${esc(x.loja.nome)}</td><td class="r">${x.loja.id === ctx.lojaId ? '<span class="pill accent">aberta</span>' : `<button class="btn sm" data-act="abrir-loja" data-id="${x.loja.id}">Abrir</button>`}</td></tr>`).join('')}</tbody></table></div>
