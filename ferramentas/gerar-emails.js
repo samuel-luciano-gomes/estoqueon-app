@@ -33,7 +33,7 @@ function layout({ previa, eyebrow, titulo, texto, botao, link, rodape }) {
       <p style="margin:22px 0 0 0;font-size:12px;line-height:1.6;color:${MUTED};">Se o botão não abrir, copie este endereço no navegador:<br><a href="${link}" style="color:${ROSE};word-break:break-all;">${link}</a></p>` : ''}
     </td></tr>
     <tr><td style="padding:22px 32px 28px 32px;font-family:${FONT};font-size:12px;line-height:1.6;color:${MUTED};border-top:1px solid ${LINE};">
-      ${rodape}<br>Dúvidas: WhatsApp (31) 97310-9443 · A equipe EstoqueOn nunca pede a sua senha.
+      ${rodape}<br>Dúvidas? <a href="https://wa.me/5531973109443" style="color:#1F8F55;font-weight:600;text-decoration:none;">Fale com a gente pelo WhatsApp</a> · A equipe EstoqueOn nunca pede a sua senha.
     </td></tr>
   </table>
   <p style="font-family:${FONT};font-size:11px;color:${MUTED};margin:16px 0 0 0;">EstoqueOn · estoque, preço e vendas para semijoias</p>

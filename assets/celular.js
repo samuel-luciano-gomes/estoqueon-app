@@ -226,7 +226,8 @@ function vInicio() {
       ...pv.saudade.slice(0, 2).map(x => tarefa(x.c, `Sem comprar há ${dias(x.r.ultima, h)} dias`, 'reativacao'))].join('')}</div></div>` : ''}
   ${baixos.length ? `<div class="card grid"><div class="secao-t"><h3>Estoque baixo</h3><span class="pill warn">${baixos.length}</span></div>
     <div class="lista" style="border:0">${baixos.slice(0, 5).map(lrow).join('')}</div></div>` : ''}
-  <p class="small muted" style="text-align:center">Plano ${esc(D.loja.plano.replace(/^./, c => c.toUpperCase()))} · <a href="app.html">Abrir o sistema completo</a></p>`;
+  <p class="small muted" style="text-align:center">Plano ${esc(D.loja.plano.replace(/^./, c => c.toUpperCase()))} · <a href="app.html">Abrir o sistema completo</a></p>
+  <p style="text-align:center">${EO.botaoWhats('Dúvidas? Fale com a gente', 'Olá! Tenho uma dúvida sobre o EstoqueOn (loja ' + D.loja.nome + ').', 'link-wa')}</p>`;
 }
 function tarefa(c, sub, tipo) {
   return `<div class="tarefa"><div class="t"><b>${esc(c.nome)}</b><span>${esc(sub)}</span></div><button class="btn sm wa" data-act="whats" data-id="${c.id}" data-tipo="${tipo}">WhatsApp</button></div>`;
@@ -622,6 +623,7 @@ function abrirMenu() {
   <div class="sheet-head"><div><span class="eyebrow">Conta</span><h2>${esc(ctx.perfil.nome || ctx.user.email)}</h2><span class="small muted">${esc(ctx.user.email)} · ${dona() ? 'dona' : 'vendedora'}</span></div><button class="m-icon" data-act="fechar" aria-label="Fechar">✕</button></div>
   ${ctx.lojas.length > 1 ? `<div class="grid"><h3>Trocar de loja</h3><div class="lista">${ctx.lojas.map(x => `<button class="crow" data-act="trocar-loja" data-id="${x.loja.id}"><span class="av">${esc(iniciais(x.loja.nome))}</span><span><b style="font-weight:500">${esc(x.loja.nome)}</b></span><span>${x.loja.id === ctx.lojaId ? '<span class="pill accent">aberta</span>' : ''}</span></button>`).join('')}</div></div>` : ''}
   <a class="btn" href="app.html">Abrir o sistema completo</a>
+  ${EO.botaoWhats('Falar com o suporte', 'Olá! Preciso de ajuda com o EstoqueOn (loja ' + D.loja.nome + ').')}
   ${ctx.master ? '<a class="btn" href="master.html">Painel master</a>' : ''}
   <p class="small muted">Para instalar: no Android, menu do Chrome → <b>Instalar app</b>. No iPhone, Safari → Compartilhar → <b>Adicionar à Tela de Início</b>.</p>
   <button class="btn danger" data-act="sair">Sair</button>`);
@@ -760,7 +762,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     EO.vigiarSessao();
     if (!ctx.lojaId) { document.getElementById('view').innerHTML = '<div class="empty"><h2>Sem loja</h2><p>Sua conta ainda não está em nenhuma loja.</p></div>'; return; }
     const x = ctx.lojas.find(l => l.loja.id === ctx.lojaId);
-    if (!x.loja.ativa) { document.getElementById('view').innerHTML = '<div class="empty"><h2>Loja suspensa</h2><p>Fale no WhatsApp (31) 97310-9443.</p></div>'; return; }
+    if (!x.loja.ativa) { document.getElementById('view').innerHTML = '<div class="empty grid" style="justify-items:center"><h2>Loja suspensa</h2><p>O acesso a esta loja está suspenso. Para reativar, fale com a gente.</p>' + EO.botaoWhats('Reativar minha loja', 'Olá! Quero reativar a loja ' + x.loja.nome + ' no EstoqueOn.') + '</div>'; return; }
     await carregar(); render();
   } catch (e) {
     console.error(e);

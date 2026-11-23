@@ -128,6 +128,15 @@ a{color:var(--accent)}
   .auth-card a{font-weight:500;text-decoration:none}
   .auth-foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--line);font-size:.95rem}
 }
+/* botão e link do WhatsApp (suporte) */
+.btn-wa{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:999px;background:#1F8F55;color:#fff;font-family:var(--f-body);font-size:.92rem;font-weight:500;text-decoration:none;white-space:nowrap;transition:filter .15s}
+.btn-wa:hover{filter:brightness(1.08)}
+.btn-wa svg,.link-wa svg{width:18px;height:18px;flex:none}
+.link-wa{display:inline-flex;align-items:center;gap:7px;color:#1F8F55;font-weight:500;text-decoration:none}
+.link-wa:hover{text-decoration:underline}
+:root[data-theme="dark"] .link-wa{color:#5BD08F}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .link-wa{color:#5BD08F}}
+
 /* aviso de saída por inatividade (usado em todas as telas logadas) */
 .eo-aviso{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:100;width:min(440px,calc(100vw - 32px));background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:14px;box-shadow:0 18px 50px -12px rgba(40,20,25,.45);padding:16px;display:grid;gap:12px}
 .eo-aviso div{display:grid;gap:4px}

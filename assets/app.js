@@ -237,7 +237,7 @@ function vPainel() {
       ${topL.length ? topL.map(([sku, q]) => `<div style="display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;align-items:center"><span class="pname">${esc(prod(S, sku)?.nome || sku)}</span><span class="num small">${q} un.</span><span style="grid-column:1/-1;height:3px;border-radius:2px;background:var(--surface-2);overflow:hidden"><span style="display:block;height:100%;width:${q / topMax * 100}%;background:linear-gradient(90deg,var(--gold),var(--accent))"></span></span></div>`).join('') : '<div class="small muted">Sem vendas no mês.</div>'}</div>
     </div>
   </div>
-  <div class="foot small"><span class="muted">Plano ${esc(pl.nome)} · ${S.produtos.length}${pl.max_pecas ? ' de ' + pl.max_pecas : ''} peças cadastradas.</span><span class="muted">Dúvidas: WhatsApp (31) 97310-9443</span></div>`;
+  <div class="foot small"><span class="muted">Plano ${esc(pl.nome)} · ${S.produtos.length}${pl.max_pecas ? ' de ' + pl.max_pecas : ''} peças cadastradas.</span>${EO.botaoWhats('Dúvidas? Fale com a gente', 'Olá! Tenho uma dúvida sobre o EstoqueOn (loja ' + S.loja.nome + ').', 'link-wa')}</div>`;
 }
 
 /* ---------- PRODUTOS ---------- */
@@ -507,7 +507,7 @@ function vEquipe() {
   ${e.carregando ? '' : usadas < pl.max_usuarias ? `<div class="card grid">${ajTitulo('Convidar pessoa', 'Ela recebe acesso quando criar a conta com o mesmo e-mail.')}
     <form class="grid g3" id="form-convite" style="align-items:end"><div class="field"><label for="cv-email">E-mail da pessoa</label><input id="cv-email" class="inp" type="email" autocomplete="off" required></div><div class="field"><label for="cv-papel">Papel</label><select id="cv-papel" class="inp"><option value="vendedora">Vendedora</option><option value="dona">Dona</option></select></div><button class="btn primary" type="submit">Convidar</button></form>
     <span class="hint">Depois de convidar, envie o endereço <span class="mono">${esc(EO.base())}cadastro.html</span> para ela.</span></div>`
-    : `<div class="alert warn small"><span>O plano ${esc(pl.nome)} chegou ao limite de usuárias. <a href="${WA_PLANO}" target="_blank" rel="noopener">Fale com a gente para ampliar</a>.</span></div>`}
+    : `<div class="alert warn small"><span>O plano ${esc(pl.nome)} chegou ao limite de usuárias. <a class="link-wa" href="${WA_PLANO}" target="_blank" rel="noopener">${EO.WA_ICONE}Fale com a gente para ampliar</a>.</span></div>`}
   <div class="card grid">${ajTitulo('O que cada papel pode fazer', '')}
     <div class="grid g2">
       <div class="papel"><b>Dona</b><ul><li>Tudo o que a vendedora faz</li><li>Muda preços, insumos e a marca</li><li>Convida e remove pessoas</li><li>Vê o histórico de alterações</li><li>Importa nota fiscal e envia fotos</li></ul></div>
@@ -570,7 +570,7 @@ function uso(rotulo, usado, max) {
 function vPlano() {
   const pl = plano(); const minhas = ctx.lojas.filter(x => x.loja.dona === ctx.user.id);
   const e = ui.equipe || { membros: [], convites: [] };
-  return `<div class="card grid">${ajTitulo('Plano ' + esc(pl.nome), brl(pl.preco_mensal) + ' por mês', `<a class="btn sm" href="${WA_PLANO}" target="_blank" rel="noopener">Mudar de plano</a>`)}
+  return `<div class="card grid">${ajTitulo('Plano ' + esc(pl.nome), brl(pl.preco_mensal) + ' por mês', EO.botaoWhats('Mudar de plano', 'Olá! Quero mudar o plano da loja ' + S.loja.nome + ' no EstoqueOn.'))}
     ${uso('Peças cadastradas', S.produtos.length, pl.max_pecas)}
     ${uso('Usuárias nesta loja', e.membros.length + e.convites.length, pl.max_usuarias)}
     ${uso('Lojas', minhas.length, pl.max_lojas)}</div>
@@ -843,12 +843,12 @@ new MutationObserver(() => {
 /* ---------- início ---------- */
 async function iniciarLoja() {
   if (!ctx.lojaId) {
-    tela('Você ainda não tem uma loja', 'Sua conta não está ligada a nenhuma loja. Se você foi convidada, peça para a dona conferir o e-mail do convite. Para abrir a sua própria loja, fale no WhatsApp (31) 97310-9443.');
+    tela('Você ainda não tem uma loja', 'Sua conta não está ligada a nenhuma loja. Se você foi convidada, peça para a dona conferir o e-mail do convite. Para abrir a sua própria loja, fale com a gente.', EO.botaoWhats('Quero abrir minha loja', 'Olá! Criei minha conta no EstoqueOn e quero abrir minha loja.'));
     return;
   }
   const x = ctx.lojas.find(l => l.loja.id === ctx.lojaId);
   if (x && !x.loja.ativa) {
-    tela('Loja suspensa', 'O acesso a ' + esc(x.loja.nome) + ' está suspenso. Para reativar, fale no WhatsApp (31) 97310-9443.');
+    tela('Loja suspensa', 'O acesso a ' + esc(x.loja.nome) + ' está suspenso. Para reativar, fale com a gente.', EO.botaoWhats('Reativar minha loja', 'Olá! Quero reativar a loja ' + x.loja.nome + ' no EstoqueOn.'));
     return;
   }
   await carregarLoja(); render();
