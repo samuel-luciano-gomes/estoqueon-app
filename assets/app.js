@@ -76,7 +76,7 @@ const margem = (S, p) => { const v = vistaPraticado(S, p); return v > 0 ? lucroI
 let ctx = { user: null, perfil: null, master: false, lojas: [], lojaId: null, papel: null, planos: [] };
 let S = null;
 let ui = { tab: 'painel', mode: 'venda', cart: [], pag: 'vista', parc: 1, cliente: '', novoNome: '', novoWa: '', entrada: [], conf: {}, sel: [], filtro: 'todos', q: '', mes: null, vmes: 'todos', copias: {}, ultima: null, etiquetas: false, ocupado: false,
-  hist: { tabela: 'todas', pag: 0, itens: null, fim: false }, equipe: null };
+  hist: { tabela: 'todas', pag: 0, itens: null, fim: false }, equipe: null, aj: (function () { try { return localStorage.getItem('eo-aj') || 'marca'; } catch (e) { return 'marca'; } })() };
 const dona = () => ctx.papel === 'dona';
 const TABS = () => [['painel', 'Painel'], ['produtos', 'Produtos'], ['leitor', 'Leitor'], ['vendas', 'Vendas']]
   .concat(dona() ? [['historico', 'Histórico']] : []).concat([['ajustes', 'Ajustes']]);
@@ -166,6 +166,8 @@ function render() {
   const v = document.getElementById('view');
   v.innerHTML = ({ painel: vPainel, produtos: vProdutos, leitor: vLeitor, vendas: vVendas, historico: vHistorico, ajustes: vAjustes })[ui.tab]();
   drawQR(v);
+  const navAj = v.querySelector(".aj-nav"), atualAj = navAj && navAj.querySelector("[aria-current=page]");
+  if (atualAj && navAj.scrollWidth > navAj.clientWidth) navAj.scrollLeft = atualAj.offsetLeft - navAj.offsetLeft - (navAj.clientWidth - atualAj.offsetWidth) / 2;
   if (fid) { const el = document.getElementById(fid); if (el) { if (typing != null && el.tagName === 'INPUT') el.value = typing; el.focus({ preventScroll: true }); try { if (ss != null) el.setSelectionRange(ss, se); } catch (e) {} } }
   if (ui.tab === 'historico' && ui.hist.itens === null) carregarHistorico();
   if (ui.tab === 'ajustes' && dona() && ui.equipe === null) carregarEquipe();
@@ -476,68 +478,70 @@ async function carregarEquipe() {
   } catch (e) { ui.equipe = { membros: [], convites: [] }; falha(e); }
   if (ui.tab === 'ajustes') render();
 }
+const AJ_SECOES = [
+  ['marca', 'Marca da loja', 'Nome, assinatura e cores'],
+  ['equipe', 'Equipe', 'Quem usa e o que pode fazer'],
+  ['precos', 'Preços e insumos', 'Markup, taxas e embalagens'],
+  ['plano', 'Plano e lojas', 'Limites e outras lojas'],
+  ['conta', 'Minha conta', 'Nome, senha e segurança']
+];
+const AJ_ICON = {
+  marca: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 9-9c0 2.5-2 3-3.5 3H15a2 2 0 0 0-1.5 3.3A1.7 1.7 0 0 1 12 21z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14.5" cy="7" r="1"/></svg>',
+  equipe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>',
+  precos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>',
+  plano: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l4 3 5-7 5 7 4-3-2 11H5z"/></svg>',
+  conta: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>'
+};
+const ajTitulo = (t, d, extra) => `<div class="aj-titulo"><div><h3>${t}</h3>${d ? `<p class="muted small">${d}</p>` : ''}</div>${extra || ''}</div>`;
+const WA_PLANO = 'https://wa.me/5531973109443?text=' + encodeURIComponent('Olá! Quero mudar o plano da minha loja no EstoqueOn.');
+
 function vEquipe() {
   const e = ui.equipe || { membros: [], convites: [], carregando: true };
   const pl = plano(); const usadas = e.membros.length + e.convites.length;
-  return `<div class="card grid"><div class="head" style="align-items:start"><div><span class="eyebrow">Equipe</span><h3>Quem usa a loja</h3><p class="muted small">${usadas} de ${pl.max_usuarias} usuária(s) do plano ${esc(pl.nome)}. Vendedoras registram vendas, entradas e conferências; não mudam preços, insumos nem veem o histórico.</p></div></div>
+  return `<div class="card grid">${ajTitulo('Quem usa a loja', `${usadas} de ${pl.max_usuarias} usuária${pl.max_usuarias === 1 ? '' : 's'} do plano ${esc(pl.nome)}.`)}
     ${e.carregando ? '<div class="empty">Carregando…</div>' : `<div class="tbl-wrap"><table class="tbl"><thead><tr><th>Pessoa</th><th>Papel</th><th></th></tr></thead><tbody>
     ${e.membros.map(m => `<tr><td>${esc(m.nome || m.email)}<span class="cellnote">${esc(m.email)}</span></td><td>${m.user_id === ctx.user.id ? '<span class="pill accent">Você · ' + (m.papel === 'dona' ? 'dona' : 'vendedora') + '</span>' : `<select id="papel-${m.user_id}" class="inp sm" data-bind="papel" data-uid="${m.user_id}"><option value="vendedora" ${m.papel === 'vendedora' ? 'selected' : ''}>Vendedora</option><option value="dona" ${m.papel === 'dona' ? 'selected' : ''}>Dona</option></select>`}</td><td class="r">${m.user_id === ctx.user.id ? '' : `<button class="btn sm danger" data-act="membro-rm" data-uid="${m.user_id}">Remover</button>`}</td></tr>`).join('')}
     ${e.convites.map(c => `<tr><td>${esc(c.email)}<span class="cellnote">Convite pendente: ela precisa criar a conta com este e-mail</span></td><td>${c.papel === 'dona' ? 'Dona' : 'Vendedora'}</td><td class="r"><button class="btn sm" data-act="convite-rm" data-id="${c.id}">Cancelar</button></td></tr>`).join('')}
-    </tbody></table></div>
-    ${usadas < pl.max_usuarias ? `<form class="grid g3" id="form-convite" style="align-items:end"><div class="field"><label for="cv-email">E-mail da pessoa</label><input id="cv-email" class="inp" type="email" autocomplete="off" required></div><div class="field"><label for="cv-papel">Papel</label><select id="cv-papel" class="inp"><option value="vendedora">Vendedora</option><option value="dona">Dona</option></select></div><button class="btn primary" type="submit">Convidar</button></form>
-    <span class="hint">Depois de convidar, envie o endereço <span class="mono">${esc(EO.base())}cadastro.html</span> para ela criar a conta com o mesmo e-mail.</span>` : `<div class="alert warn small"><span>O plano ${esc(pl.nome)} chegou ao limite de usuárias. Para ampliar, fale no WhatsApp (31) 97310-9443.</span></div>`}`}
-  </div>`;
+    </tbody></table></div>`}
+  </div>
+  ${e.carregando ? '' : usadas < pl.max_usuarias ? `<div class="card grid">${ajTitulo('Convidar pessoa', 'Ela recebe acesso quando criar a conta com o mesmo e-mail.')}
+    <form class="grid g3" id="form-convite" style="align-items:end"><div class="field"><label for="cv-email">E-mail da pessoa</label><input id="cv-email" class="inp" type="email" autocomplete="off" required></div><div class="field"><label for="cv-papel">Papel</label><select id="cv-papel" class="inp"><option value="vendedora">Vendedora</option><option value="dona">Dona</option></select></div><button class="btn primary" type="submit">Convidar</button></form>
+    <span class="hint">Depois de convidar, envie o endereço <span class="mono">${esc(EO.base())}cadastro.html</span> para ela.</span></div>`
+    : `<div class="alert warn small"><span>O plano ${esc(pl.nome)} chegou ao limite de usuárias. <a href="${WA_PLANO}" target="_blank" rel="noopener">Fale com a gente para ampliar</a>.</span></div>`}
+  <div class="card grid">${ajTitulo('O que cada papel pode fazer', '')}
+    <div class="grid g2">
+      <div class="papel"><b>Dona</b><ul><li>Tudo o que a vendedora faz</li><li>Muda preços, insumos e a marca</li><li>Convida e remove pessoas</li><li>Vê o histórico de alterações</li><li>Importa nota fiscal e envia fotos</li></ul></div>
+      <div class="papel"><b>Vendedora</b><ul><li>Registra vendas pelo leitor</li><li>Dá entrada e saída no estoque</li><li>Faz a conferência da vitrine</li><li>Lança no caixa e cuida do pós-venda</li></ul></div>
+    </div></div>`;
 }
 function vMarca() {
   const m = S.marca; const demo = S.produtos[0] || { sku: 'EO-0001', nome: 'Colar ponto de luz', custo: 18, preco: null };
-  return `<div class="card grid">
-    <div><span class="eyebrow">Identidade</span><h3>Sua marca</h3><p class="muted small" style="max-width:60ch">O nome aparece no topo, nas etiquetas e nas mensagens de WhatsApp. As alterações são salvas sozinhas.</p></div>
+  return `<div class="card grid">${ajTitulo('Identidade da loja', 'O nome aparece no topo, nas etiquetas e nas mensagens de WhatsApp. As alterações são salvas sozinhas.')}
     <div class="grid g2" style="align-items:start">
       <div class="grid">
         <div class="field"><label for="mk-nome">Nome da loja</label><input id="mk-nome" class="inp" value="${esc(m.nome)}" data-bind="marca" data-k="nome" maxlength="60"></div>
         <div class="field"><label for="mk-ass">Assinatura</label><input id="mk-ass" class="inp" value="${esc(m.assinatura)}" data-bind="marca" data-k="assinatura" maxlength="80" placeholder="Semijoias com banho de ouro 18k"></div>
         <div class="field"><label for="mk-ig">Instagram</label><input id="mk-ig" class="inp" value="${esc(m.insta)}" data-bind="marca" data-k="insta" maxlength="40" placeholder="@sualoja"></div>
-        <div class="field"><span class="flabel">Paleta</span>
-          <div class="palettes">${Object.entries(PALETAS).map(([k, p]) => `<button class="pal" data-act="paleta" data-k="${k}" aria-pressed="${m.paleta === k}"><span class="sw">${p.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span><span><b>${p.nome}</b><span class="cellnote">${p.desc}</span></span></button>`).join('')}</div></div>
       </div>
       <div class="grid" style="align-content:start"><span class="flabel">Como fica a etiqueta</span><div class="sheet" style="grid-template-columns:1fr">${etiqueta(demo, true)}</div></div>
-    </div>
-  </div>`;
+    </div></div>
+  <div class="card grid">${ajTitulo('Cores do sistema', 'A paleta vale para o sistema, o app de celular e as etiquetas.')}
+    <div class="palettes">${Object.entries(PALETAS).map(([k, p]) => `<button class="pal" data-act="paleta" data-k="${k}" aria-pressed="${m.paleta === k}"><span class="sw">${p.sw.map(c => `<i style="background:${c}"></i>`).join('')}</span><span><b>${p.nome}</b><span class="cellnote">${p.desc}</span></span></button>`).join('')}</div></div>`;
 }
-function vLojas() {
-  const pl = plano(); const minhas = ctx.lojas.filter(x => x.loja.dona === ctx.user.id);
-  return `<div class="card grid"><div><span class="eyebrow">Plano</span><h3>Plano ${esc(pl.nome)}</h3><p class="muted small">Até ${pl.max_pecas ? pl.max_pecas + ' peças' : 'peças ilimitadas'}, ${pl.max_usuarias} usuária(s) por loja e ${pl.max_lojas} loja(s). Para mudar de plano, fale no WhatsApp (31) 97310-9443.</p></div>
-    ${pl.max_lojas > 1 ? `<div class="tbl-wrap"><table class="tbl"><tbody>${minhas.map(x => `<tr><td>${esc(x.loja.nome)}</td><td class="r">${x.loja.id === ctx.lojaId ? '<span class="pill accent">aberta</span>' : `<button class="btn sm" data-act="abrir-loja" data-id="${x.loja.id}">Abrir</button>`}</td></tr>`).join('')}</tbody></table></div>
-    ${minhas.length < pl.max_lojas ? `<form id="form-loja" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end"><div class="field" style="flex:1 1 220px"><label for="nova-loja">Nova loja</label><input id="nova-loja" class="inp" maxlength="60" placeholder="Nome da nova loja" required></div><button class="btn" type="submit">Criar loja</button></form>` : ''}` : ''}
-  </div>`;
-}
-function vConta() {
-  return `<div class="card grid"><div><span class="eyebrow">Conta</span><h3>Seus dados</h3><p class="muted small">${esc(ctx.user.email)}</p></div>
-    <div class="grid g2" style="align-items:start">
-      <form id="form-nome" class="grid"><div class="field"><label for="ct-nome">Seu nome</label><input id="ct-nome" class="inp" value="${esc(ctx.perfil.nome)}" maxlength="80"></div><button class="btn" type="submit">Salvar nome</button></form>
-      <form id="form-senha" class="grid"><div class="field"><label for="ct-senha">Nova senha</label><div class="pass-wrap"><input id="ct-senha" class="inp" type="password" autocomplete="new-password"><button type="button">Mostrar</button></div><div class="meter"><span id="ct-barra"></span></div><ul class="rules" id="ct-regras"></ul></div><button class="btn" type="submit">Trocar senha</button></form>
-    </div>
-    <div><button class="btn danger" data-act="sair-tudo">Sair de todos os aparelhos</button></div>
-  </div>`;
-}
-function vAjustes() {
-  if (!dona()) return `<div class="head"><div><span class="eyebrow">Configuração</span><h2>Ajustes</h2></div></div>${vConta()}`;
+function vPrecos() {
   const st = S.settings; const r = rateio(S);
   const simC = numIn(ui.simCusto != null ? ui.simCusto : 10); const fake = { custo: simC, preco: null };
   const sv = calcVista(S, fake), sc = cartaoDe(S, sv), sl = lucroItem(S, sv, custoTotal(S, fake), 'vista');
-  return `
-  <div class="head"><div><span class="eyebrow">Configuração</span><h2>Ajustes</h2><p class="muted">Marca, equipe, regras de preço, insumos e sua conta.</p></div></div>
-  ${vMarca()}
-  ${vEquipe()}
-  <div class="grid g2">
-    <div class="card grid" style="align-content:start"><h3>Regras de preço</h3>
+  return `<div class="grid g2" style="align-items:start">
+    <div class="card grid">${ajTitulo('Regras de preço', 'Mude uma regra e todos os preços calculados se atualizam.')}
       <div class="grid g2">
-        <div class="field"><label for="mk">Markup</label><input id="mk" class="inp num" inputmode="decimal" value="${String(st.markup).replace('.', ',')}" data-bind="set" data-k="markup"><span class="hint">Multiplica o custo total (peça + insumos).</span></div>
-        <div class="field"><label for="tx">Taxa do cartão (%)</label><input id="tx" class="inp num" inputmode="decimal" value="${String(st.taxaCartao).replace('.', ',')}" data-bind="set" data-k="taxaCartao"><span class="hint">Até 3x, embutida no preço do cartão.</span></div>
-        <div class="field"><label for="im">Imposto sobre a venda (%)</label><input id="im" class="inp num" inputmode="decimal" value="${String(st.imposto).replace('.', ',')}" data-bind="set" data-k="imposto"><span class="hint">MEI paga DAS fixo por mês: pode deixar 0.</span></div>
-        <div class="field"><span class="flabel">Arredondamento</span><label style="display:flex;gap:8px;align-items:center;padding-top:8px;font-size:.9rem"><input type="checkbox" class="cb" id="arr" data-bind="arred" ${st.arredondar ? 'checked' : ''}> Terminar em ,90</label></div>
-      </div>
-      <div class="breakdown"><b class="eyebrow">Simulação</b>
+        <div class="field"><label for="mk">Markup</label><input id="mk" class="inp num" inputmode="decimal" value="${String(st.markup).replace('.', ',')}" data-bind="set" data-k="markup"><span class="hint">Multiplica o custo total.</span></div>
+        <div class="field"><label for="tx">Taxa do cartão (%)</label><input id="tx" class="inp num" inputmode="decimal" value="${String(st.taxaCartao).replace('.', ',')}" data-bind="set" data-k="taxaCartao"><span class="hint">Embutida no preço do cartão.</span></div>
+        <div class="field"><label for="im">Imposto sobre a venda (%)</label><input id="im" class="inp num" inputmode="decimal" value="${String(st.imposto).replace('.', ',')}" data-bind="set" data-k="imposto"><span class="hint">MEI com DAS fixo: deixe 0.</span></div>
+        <div class="field"><span class="flabel">Arredondamento</span><label class="opcao"><input type="checkbox" class="cb" id="arr" data-bind="arred" ${st.arredondar ? 'checked' : ''}> Terminar em ,90</label></div>
+      </div></div>
+    <div class="card grid">${ajTitulo('Simulação', 'Veja como fica o preço de uma peça.')}
+      <div class="breakdown">
         <div class="field" style="max-width:200px"><label for="sim">Custo no fornecedor</label><input id="sim" class="inp num" inputmode="decimal" value="${esc(ui.simCusto != null ? ui.simCusto : '10')}" data-bind="sim"></div>
         <div><span>Custo da peça</span><span class="num">${brl(simC)}</span></div>
         <div><span>+ Insumos por peça</span><span class="num">${brl(r)}</span></div>
@@ -546,23 +550,66 @@ function vAjustes() {
         <div class="sep"><b>Preço à vista</b><b class="num">${brl(sv)}</b></div>
         <div><b>Preço no cartão</b><b class="num">${brl(sc)}</b></div>
         <div><span>Lucro à vista</span><span class="num" style="color:var(--good)">${brl(sl)} (${pct(sv ? sl / sv * 100 : 0)})</span></div>
-      </div>
-    </div>
-    <div class="card grid" style="align-content:start"><div class="head" style="align-items:center"><h3>Insumos por peça</h3><button class="btn sm" data-act="ins-add">+ Insumo</button></div>
-      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Insumo</th><th>Tipo</th><th>Lote (R$)</th><th>Qtd</th><th class="r">Por peça</th><th></th></tr></thead><tbody>
-      ${S.insumos.map(i => `<tr><td><input id="in-n-${i.id}" class="inp sm" style="width:100%;min-width:120px" value="${esc(i.nome)}" data-bind="ins" data-id="${i.id}" data-k="nome" maxlength="60"></td>
-        <td><select id="in-t-${i.id}" class="inp sm" data-bind="ins" data-id="${i.id}" data-k="tipo">${['Embalagem', 'Impressão', 'Outros'].map(t => `<option ${i.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
-        <td><input id="in-v-${i.id}" class="inp sm num" style="width:80px" inputmode="decimal" value="${String(i.total).replace('.', ',')}" data-bind="ins" data-id="${i.id}" data-k="total"></td>
-        <td><input id="in-q-${i.id}" class="inp sm num" style="width:64px" inputmode="numeric" value="${i.qtd}" data-bind="ins" data-id="${i.id}" data-k="qtd"></td>
-        <td class="r num">${brl(i.qtd > 0 ? i.total / i.qtd : 0)}</td>
-        <td><button class="btn ghost icon" data-act="ins-rm" data-id="${i.id}" aria-label="Remover ${esc(i.nome)}">✕</button></td></tr>`).join('')}
-      </tbody></table></div>
-      <div class="totals"><div><b>Rateio total por peça</b><b class="num">${brl(r)}</b></div></div>
-      <span class="hint">Custo do lote ÷ quantidade = custo por peça.</span>
-    </div>
+      </div></div>
   </div>
-  ${vLojas()}
-  ${vConta()}`;
+  <div class="card grid">${ajTitulo('Insumos por peça', 'Embalagens e impressos que vão com cada venda. O custo do lote dividido pela quantidade entra no custo de cada peça.', '<button class="btn sm" data-act="ins-add">+ Insumo</button>')}
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Insumo</th><th>Tipo</th><th>Lote (R$)</th><th>Qtd</th><th class="r">Por peça</th><th></th></tr></thead><tbody>
+    ${S.insumos.map(i => `<tr><td><input id="in-n-${i.id}" class="inp sm" style="width:100%;min-width:120px" value="${esc(i.nome)}" data-bind="ins" data-id="${i.id}" data-k="nome" maxlength="60"></td>
+      <td><select id="in-t-${i.id}" class="inp sm" data-bind="ins" data-id="${i.id}" data-k="tipo">${['Embalagem', 'Impressão', 'Outros'].map(t => `<option ${i.tipo === t ? 'selected' : ''}>${t}</option>`).join('')}</select></td>
+      <td><input id="in-v-${i.id}" class="inp sm num" style="width:80px" inputmode="decimal" value="${String(i.total).replace('.', ',')}" data-bind="ins" data-id="${i.id}" data-k="total"></td>
+      <td><input id="in-q-${i.id}" class="inp sm num" style="width:64px" inputmode="numeric" value="${i.qtd}" data-bind="ins" data-id="${i.id}" data-k="qtd"></td>
+      <td class="r num">${brl(i.qtd > 0 ? i.total / i.qtd : 0)}</td>
+      <td><button class="btn ghost icon" data-act="ins-rm" data-id="${i.id}" aria-label="Remover ${esc(i.nome)}">✕</button></td></tr>`).join('')}
+    </tbody></table></div>
+    <div class="totals"><div><b>Rateio total por peça</b><b class="num">${brl(r)}</b></div></div></div>`;
+}
+function uso(rotulo, usado, max) {
+  const p = max ? Math.min(100, usado / max * 100) : 8;
+  return `<div class="uso"><div class="secao-linha"><span>${rotulo}</span><span class="num">${usado}${max ? ' de ' + max : ' · ilimitado'}</span></div><div class="barra"><span style="width:${p}%;${max && usado >= max ? 'background:var(--warn)' : ''}"></span></div></div>`;
+}
+function vPlano() {
+  const pl = plano(); const minhas = ctx.lojas.filter(x => x.loja.dona === ctx.user.id);
+  const e = ui.equipe || { membros: [], convites: [] };
+  return `<div class="card grid">${ajTitulo('Plano ' + esc(pl.nome), brl(pl.preco_mensal) + ' por mês', `<a class="btn sm" href="${WA_PLANO}" target="_blank" rel="noopener">Mudar de plano</a>`)}
+    ${uso('Peças cadastradas', S.produtos.length, pl.max_pecas)}
+    ${uso('Usuárias nesta loja', e.membros.length + e.convites.length, pl.max_usuarias)}
+    ${uso('Lojas', minhas.length, pl.max_lojas)}</div>
+  <div class="card grid">${ajTitulo('Comparar planos', '')}
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Plano</th><th class="r">Mensal</th><th class="r">Peças</th><th class="r">Usuárias</th><th class="r">Lojas</th></tr></thead><tbody>
+    ${ctx.planos.map(p => `<tr><td>${esc(p.nome)} ${p.id === S.loja.plano ? '<span class="pill accent">atual</span>' : ''}</td><td class="r num">${brl(p.preco_mensal)}</td><td class="r num">${p.max_pecas || 'ilimitadas'}</td><td class="r num">${p.max_usuarias}</td><td class="r num">${p.max_lojas}</td></tr>`).join('')}
+    </tbody></table></div></div>
+  <div class="card grid">${ajTitulo('Suas lojas', pl.max_lojas > 1 ? 'Cada loja tem marca, estoque, equipe e caixa próprios.' : 'O plano Gold permite até 3 lojas.')}
+    <div class="tbl-wrap"><table class="tbl"><tbody>${minhas.map(x => `<tr><td>${esc(x.loja.nome)}</td><td class="r">${x.loja.id === ctx.lojaId ? '<span class="pill accent">aberta</span>' : `<button class="btn sm" data-act="abrir-loja" data-id="${x.loja.id}">Abrir</button>`}</td></tr>`).join('')}</tbody></table></div>
+    ${pl.max_lojas > 1 && minhas.length < pl.max_lojas ? `<form id="form-loja" style="display:flex;gap:8px;flex-wrap:wrap;align-items:end"><div class="field" style="flex:1 1 220px"><label for="nova-loja">Nova loja</label><input id="nova-loja" class="inp" maxlength="60" placeholder="Nome da nova loja" required></div><button class="btn" type="submit">Criar loja</button></form>` : ''}</div>`;
+}
+function vConta() {
+  let vence = '';
+  try { const l = Number(localStorage.getItem('eo-login-em')); if (l) vence = new Date(l + EO.PRAZO.maxHoras * 3600e3).toLocaleString('pt-BR', { weekday: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) {}
+  const inat = EO.PRAZO.inatividadeMin % 60 ? EO.PRAZO.inatividadeMin + ' minutos' : (EO.PRAZO.inatividadeMin / 60 === 1 ? '1 hora' : EO.PRAZO.inatividadeMin / 60 + ' horas');
+  return `<div class="card grid">${ajTitulo('Seus dados', '')}
+    <form id="form-nome" class="grid g2" style="align-items:end"><div class="field"><label for="ct-nome">Seu nome</label><input id="ct-nome" class="inp" value="${esc(ctx.perfil.nome)}" maxlength="80"></div><div class="field"><span class="flabel">E-mail</span><div class="inp" style="background:var(--surface-2)">${esc(ctx.user.email)}</div></div><button class="btn" type="submit" style="justify-self:start">Salvar nome</button></form></div>
+  <div class="card grid">${ajTitulo('Senha', 'Use uma senha que você não usa em outros sites.')}
+    <form id="form-senha" class="grid" style="max-width:420px"><div class="field"><label for="ct-senha">Nova senha</label><div class="pass-wrap"><input id="ct-senha" class="inp" type="password" autocomplete="new-password"><button type="button">Mostrar</button></div><div class="meter"><span id="ct-barra"></span></div><ul class="rules" id="ct-regras"></ul></div><button class="btn" type="submit" style="justify-self:start">Trocar senha</button></form></div>
+  <div class="card grid">${ajTitulo('Segurança', '')}
+    <div class="kv-lista">
+      <div><span>Login atual vence</span><b>${vence || 'em até ' + EO.PRAZO.maxHoras + ' horas'}</b></div>
+      <div><span>Sai sozinho depois de</span><b>${inat} sem uso</b></div>
+      <div><span>Papel nesta loja</span><b>${dona() ? 'Dona' : 'Vendedora'}</b></div>
+    </div>
+    <div class="acoes"><button class="btn" data-act="sair">Sair deste aparelho</button><button class="btn danger" data-act="sair-tudo">Sair de todos os aparelhos</button></div>
+    <span class="hint">"Sair de todos os aparelhos" encerra o login no celular, no computador e em qualquer outro lugar. Use se perder o celular ou desconfiar que alguém tem a sua senha.</span></div>`;
+}
+function vAjustes() {
+  const secs = dona() ? AJ_SECOES : AJ_SECOES.filter(s => s[0] === 'conta');
+  if (!secs.some(s => s[0] === ui.aj)) ui.aj = secs[0][0];
+  const atual = secs.find(s => s[0] === ui.aj);
+  const corpo = { marca: vMarca, equipe: vEquipe, precos: vPrecos, plano: vPlano, conta: vConta }[ui.aj]();
+  return `
+  <div class="head"><div><span class="eyebrow">Configuração</span><h2>Ajustes</h2></div></div>
+  <div class="aj">
+    ${secs.length > 1 ? `<nav class="aj-nav" aria-label="Seções de ajustes">${secs.map(([k, t, d]) => `<button data-act="aj" data-k="${k}" ${ui.aj === k ? 'aria-current="page"' : ''}>${AJ_ICON[k]}<span><b>${t}</b><small>${d}</small></span></button>`).join('')}</nav>` : ''}
+    <section class="aj-corpo" aria-label="${atual[1]}"><div class="aj-cab"><h2>${atual[1]}</h2><p class="muted">${atual[2]}</p></div>${corpo}</section>
+  </div>`;
 }
 
 /* ---------- salvamento com espera (campos digitados) ---------- */
@@ -635,7 +682,12 @@ async function ocupado(fn) { if (ui.ocupado) return; ui.ocupado = true; render()
 const A = {
   tab: b => { ui.tab = b.dataset.k; ui.etiquetas = false; try { localStorage.setItem('eo-tab', ui.tab); } catch (e) {} if (ui.tab === 'historico') ui.hist.itens = null; render(); window.scrollTo(0, 0); },
   sair: () => EO.sair(),
-  'sair-tudo': async () => { try { await sb().auth.signOut({ scope: 'global' }); } catch (e) {} location.replace('entrar.html'); },
+  'sair-tudo': async b => {
+    if (b.dataset.confirma !== '1') { b.dataset.confirma = '1'; b.textContent = 'Confirmar: sair de todos'; return; }
+    try { await sb().auth.signOut({ scope: 'global' }); } catch (e) {}
+    try { localStorage.removeItem('eo-login-em'); localStorage.removeItem('eo-ativo-em'); } catch (e) {}
+    location.replace('entrar.html');
+  },
   filtro: b => { ui.filtro = b.dataset.k; render(); },
   abrir: (b, e) => { if (e.target.closest('input')) return; abrirProduto(b.dataset.sku); },
   sel: (b, e) => { e.stopPropagation(); const s = b.dataset.sku; ui.sel = ui.sel.includes(s) ? ui.sel.filter(x => x !== s) : [...ui.sel, s]; render(); },
@@ -689,6 +741,7 @@ const A = {
   },
   'convite-rm': async b => { const r = await sb().from('convites').delete().eq('id', b.dataset.id); if (r.error) return falha(r.error); carregarEquipe(); },
   'abrir-loja': b => trocarLoja(b.dataset.id),
+  aj: b => { ui.aj = b.dataset.k; try { localStorage.setItem('eo-aj', ui.aj); } catch (e) {} render(); window.scrollTo(0, 0); },
   'dlg-close': () => { document.getElementById('dlg').close(); draft = null; },
   'dlg-arquivar': async b => {
     if (b.dataset.confirma !== '1') { b.dataset.confirma = '1'; b.textContent = 'Confirmar: arquivar'; return; }
