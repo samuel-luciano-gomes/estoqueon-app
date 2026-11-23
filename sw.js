@@ -1,7 +1,7 @@
 // EstoqueOn — service worker: abre o app rápido e mesmo com sinal fraco.
 // Páginas: rede primeiro (sempre a versão nova). Arquivos estáticos: cache primeiro.
 // Nunca guarda nada do Supabase (dados da loja e login).
-const VERSAO = 'eo-v1';
+const VERSAO = 'eo-v2';
 const BASE = ['./celular.html', './entrar.html', './assets/base.css', './assets/celular.css', './assets/celular.js', './assets/conta.js', './assets/config.js', './assets/nfe.js',
   './assets/fonts/montserrat-latin-wght-normal.woff2', './assets/fonts/jost-latin-wght-normal.woff2', './assets/icones/icone-192.png', './manifest.webmanifest'];
 

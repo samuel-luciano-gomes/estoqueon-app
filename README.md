@@ -77,4 +77,6 @@ Para testar o banco localmente, o projeto pode usar o Supabase CLI (`supabase st
 
 ## Fontes
 
+O ícone (etiqueta com QR) está em `assets/icone.svg` e `ferramentas/icone-maskable.svg`; os PNGs saem com `npm i --no-save @resvg/resvg-js && node ferramentas/gerar-icones.js`.
+
 Montserrat e Jost ficam em `assets/fonts` (licença SIL Open Font License), sem depender do Google Fonts.
