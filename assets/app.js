@@ -78,10 +78,9 @@ let S = null;
 let ui = { tab: 'painel', mode: 'venda', cart: [], pag: 'vista', parc: 1, cliente: '', novoNome: '', novoWa: '', entrada: [], conf: {}, sel: [], filtro: 'todos', q: '', mes: null, vmes: 'todos', copias: {}, ultima: null, etiquetas: false, ocupado: false,
   hist: { tabela: 'todas', pag: 0, itens: null, fim: false }, equipe: null, aj: (function () { try { return localStorage.getItem('eo-aj') || 'marca'; } catch (e) { return 'marca'; } })() };
 const dona = () => ctx.papel === 'dona';
-const TABS = () => [['painel', 'Painel'], ['produtos', 'Produtos'], ['vendas', 'Vendas']]
-  .concat(dona() ? [['historico', 'Histórico']] : []).concat([['ajustes', 'Ajustes']]);
+const TABS = () => [['painel', 'Painel'], ['produtos', 'Produtos'], ['vendas', 'Vendas'], ['ajustes', 'Ajustes']];
 const plano = () => ctx.planos.find(p => p.id === (S && S.loja.plano)) || { nome: 'Simples', max_pecas: 300, max_usuarias: 1, max_lojas: 1 };
-try { const t = localStorage.getItem('eo-tab'); if (t) ui.tab = t; } catch (e) {}
+try { const t = localStorage.getItem('eo-tab'); if (t === 'historico') { ui.tab = 'ajustes'; ui.aj = 'historico'; } else if (t) ui.tab = t; } catch (e) {}
 
 /* ---------- toast ---------- */
 function toast(msg, kind) { const box = document.getElementById('toast'); const el = document.createElement('div'); el.className = 't' + (kind ? ' ' + kind : ''); el.textContent = msg; box.appendChild(el); setTimeout(() => el.remove(), kind === 'bad' ? 5000 : 2600); }
@@ -164,12 +163,12 @@ function render() {
   try { if (fid && a.selectionStart != null) { ss = a.selectionStart; se = a.selectionEnd; } } catch (e) {}
   aplicarMarca(); renderTop();
   const v = document.getElementById('view');
-  v.innerHTML = ({ painel: vPainel, produtos: vProdutos, leitor: vLeitor, vendas: vVendas, historico: vHistorico, ajustes: vAjustes })[ui.tab]();
+  v.innerHTML = ({ painel: vPainel, produtos: vProdutos, leitor: vLeitor, vendas: vVendas, ajustes: vAjustes })[ui.tab]();
   drawQR(v);
   const navAj = v.querySelector(".aj-nav"), atualAj = navAj && navAj.querySelector("[aria-current=page]");
   if (atualAj && navAj.scrollWidth > navAj.clientWidth) navAj.scrollLeft = atualAj.offsetLeft - navAj.offsetLeft - (navAj.clientWidth - atualAj.offsetWidth) / 2;
   if (fid) { const el = document.getElementById(fid); if (el) { if (typing != null && el.tagName === 'INPUT') el.value = typing; el.focus({ preventScroll: true }); try { if (ss != null) el.setSelectionRange(ss, se); } catch (e) {} } }
-  if (ui.tab === 'historico' && ui.hist.itens === null) carregarHistorico();
+  if (ui.tab === 'ajustes' && ui.aj === 'historico' && dona() && ui.hist.itens === null) carregarHistorico();
   if (ui.tab === 'ajustes' && dona() && ui.equipe === null) carregarEquipe();
 }
 function tela(titulo, texto, extra) {
@@ -496,7 +495,7 @@ function vVendas() {
 }
 
 /* ---------- HISTÓRICO ---------- */
-const TAB_NOME = { lojas: 'Loja', membros: 'Equipe', convites: 'Convite', insumos: 'Insumo', produtos: 'Peça', clientes: 'Cliente', vendas: 'Venda', venda_itens: 'Item de venda', movimentos: 'Estoque' };
+const TAB_NOME = { lojas: 'Loja', membros: 'Equipe', convites: 'Convite', insumos: 'Insumo', produtos: 'Peça', clientes: 'Cliente', vendas: 'Venda', venda_itens: 'Item de venda', movimentos: 'Estoque', lancamentos: 'Lançamento do caixa', notas: 'Nota fiscal', contatos: 'Contato de pós-venda' };
 const CAMPO = { nome: 'nome', assinatura: 'assinatura', instagram: 'Instagram', paleta: 'paleta', plano: 'plano', ativa: 'ativa', markup: 'markup', taxa_cartao: 'taxa do cartão', imposto: 'imposto', arredondar: 'arredondar em ,90',
   tipo: 'tipo', total: 'total', qtd: 'quantidade', sku: 'código', categoria: 'categoria', fornecedor: 'fornecedor', sku_fornecedor: 'código do fornecedor', custo: 'custo', preco: 'preço', estoque_minimo: 'estoque mínimo', ativo: 'ativa',
   whatsapp: 'WhatsApp', papel: 'papel', email: 'e-mail', pagamento: 'pagamento', parcelas: 'parcelas', lucro: 'lucro', ref: 'motivo' };
@@ -513,7 +512,10 @@ function descreve(a) {
   const r = a.depois || a.antes || {};
   const nomeReg = r.nome || r.email || (a.tabela === 'vendas' ? 'Venda #' + r.numero : '') ||
     (a.tabela === 'movimentos' ? `${(prodId(S, r.produto_id) || {}).nome || 'peça #' + r.produto_id}: ${r.qtd > 0 ? '+' : ''}${r.qtd} (${r.ref || r.tipo})` : '') ||
-    (a.tabela === 'venda_itens' ? `${r.qtd}× ${(prodId(S, r.produto_id) || {}).nome || 'peça #' + r.produto_id} a ${brl(r.preco)}` : '') || ('#' + (a.registro || ''));
+    (a.tabela === 'venda_itens' ? `${r.qtd}× ${(prodId(S, r.produto_id) || {}).nome || 'peça #' + r.produto_id} a ${brl(r.preco)}` : '') ||
+    (a.tabela === 'lancamentos' ? `${r.categoria} de ${brl(r.valor)}${r.descricao ? ' (' + r.descricao + ')' : ''}` : '') ||
+    (a.tabela === 'notas' ? `NF ${r.numero} de ${r.fornecedor} · ${brl(r.valor_total)}` : '') ||
+    (a.tabela === 'contatos' ? `${({ agradecimento: 'agradecimento', oferta: 'oferta', aniversario: 'aniversário', reativacao: 'novidades', outro: 'mensagem' })[r.tipo] || 'mensagem'} para ${(S.clientes.find(c => c.id === r.cliente_id) || {}).nome || 'cliente #' + r.cliente_id}` : '') || ('#' + (a.registro || ''));
   const verbo = { INSERT: 'criou', UPDATE: 'alterou', DELETE: 'excluiu' }[a.acao];
   let diff = '';
   if (a.acao === 'UPDATE' && a.antes && a.depois) {
@@ -529,15 +531,14 @@ async function carregarHistorico(mais) {
     if (h.tabela !== 'todas') q = q.eq('tabela', h.tabela);
     const r = await q; if (r.error) throw r.error;
     h.itens = (mais ? (h.itens || []) : []).concat(r.data); h.fim = r.data.length < N;
-    if (ui.tab === 'historico') render();
+    if (ui.tab === 'ajustes' && ui.aj === 'historico') render();
   } catch (e) { h.itens = []; falha(e); }
 }
 function vHistorico() {
   const h = ui.hist;
-  const F = [['todas', 'Tudo'], ['produtos', 'Peças'], ['vendas', 'Vendas'], ['movimentos', 'Estoque'], ['lojas', 'Loja e preços'], ['insumos', 'Insumos'], ['membros', 'Equipe'], ['clientes', 'Clientes']];
+  const F = [['todas', 'Tudo'], ['produtos', 'Peças'], ['vendas', 'Vendas'], ['movimentos', 'Estoque'], ['lancamentos', 'Caixa'], ['notas', 'Notas fiscais'], ['lojas', 'Loja e preços'], ['insumos', 'Insumos'], ['membros', 'Equipe'], ['clientes', 'Clientes'], ['contatos', 'Pós-venda']];
   return `
-  <div class="head"><div><span class="eyebrow">Segurança</span><h2>Histórico de alterações</h2><p class="muted">Tudo o que foi criado, alterado ou excluído na loja, com quem fez e quando. Este registro não pode ser editado.</p></div></div>
-  <div class="card grid">
+  <div class="card grid">${ajTitulo('Alterações na loja', 'Tudo o que foi criado, alterado ou excluído, com quem fez e quando. Este registro não pode ser editado nem apagado.')}
     <div class="chips">${F.map(([k, l]) => `<button class="chip" data-act="hist-filtro" data-k="${k}" aria-pressed="${h.tabela === k}">${l}</button>`).join('')}</div>
     <div class="list">${h.itens === null ? '<div class="empty">Carregando…</div>' : h.itens.length ? h.itens.map(a => { const d = descreve(a); return `<div class="hist-item"><div class="hist-when num">${dataHora(a.em)}</div><div class="hist-what"><span>${d.titulo}</span>${d.diff ? `<span class="diff">${d.diff}</span>` : ''}</div></div>`; }).join('') : '<div class="empty">Nenhuma alteração registrada.</div>'}</div>
     ${h.itens && !h.fim ? '<div><button class="btn" data-act="hist-mais">Ver mais antigas</button></div>' : ''}
@@ -565,9 +566,11 @@ const AJ_SECOES = [
   ['equipe', 'Equipe', 'Quem usa e o que pode fazer'],
   ['precos', 'Preços e insumos', 'Markup, taxas e embalagens'],
   ['plano', 'Plano e lojas', 'Limites e outras lojas'],
+  ['historico', 'Histórico', 'Quem alterou o quê e quando'],
   ['conta', 'Minha conta', 'Nome, senha e segurança']
 ];
 const AJ_ICON = {
+  historico: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></svg>',
   marca: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21a9 9 0 1 1 9-9c0 2.5-2 3-3.5 3H15a2 2 0 0 0-1.5 3.3A1.7 1.7 0 0 1 12 21z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="14.5" cy="7" r="1"/></svg>',
   equipe: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>',
   precos: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg>',
@@ -688,7 +691,7 @@ function vAjustes() {
   const secs = dona() ? AJ_SECOES : AJ_SECOES.filter(s => s[0] === 'conta');
   if (!secs.some(s => s[0] === ui.aj)) ui.aj = secs[0][0];
   const atual = secs.find(s => s[0] === ui.aj);
-  const corpo = { marca: vMarca, equipe: vEquipe, precos: vPrecos, plano: vPlano, conta: vConta }[ui.aj]();
+  const corpo = { marca: vMarca, equipe: vEquipe, precos: vPrecos, plano: vPlano, historico: vHistorico, conta: vConta }[ui.aj]();
   return `
   <div class="head"><div><span class="eyebrow">Configuração</span><h2>Ajustes</h2></div></div>
   <div class="aj">
@@ -765,7 +768,7 @@ async function renderDlg() {
 /* ---------- ações ---------- */
 async function ocupado(fn) { if (ui.ocupado) return; ui.ocupado = true; render(); try { await fn(); } catch (e) { falha(e); } ui.ocupado = false; render(); }
 const A = {
-  tab: b => { ui.tab = b.dataset.k; ui.etiquetas = false; try { localStorage.setItem('eo-tab', ui.tab); } catch (e) {} if (ui.tab === 'historico') ui.hist.itens = null; render(); window.scrollTo(0, 0); },
+  tab: b => { ui.tab = b.dataset.k; ui.etiquetas = false; try { localStorage.setItem('eo-tab', ui.tab); } catch (e) {} render(); window.scrollTo(0, 0); },
   sair: () => EO.sair(),
   'sair-tudo': async b => {
     if (b.dataset.confirma !== '1') { b.dataset.confirma = '1'; b.textContent = 'Confirmar: sair de todos'; return; }
@@ -830,7 +833,7 @@ const A = {
   'convite-rm': async b => { const r = await sb().from('convites').delete().eq('id', b.dataset.id); if (r.error) return falha(r.error); carregarEquipe(); },
   'abrir-loja': b => trocarLoja(b.dataset.id),
   'copiar-app': async b => { try { await navigator.clipboard.writeText(EO.base() + 'instalar.html'); b.textContent = 'Link copiado'; } catch (e) { toast('Não consegui copiar. Selecione o link abaixo.', 'bad'); } },
-  aj: b => { ui.aj = b.dataset.k; try { localStorage.setItem('eo-aj', ui.aj); } catch (e) {} render(); window.scrollTo(0, 0); },
+  aj: b => { ui.aj = b.dataset.k; if (ui.aj === 'historico') ui.hist.itens = null; try { localStorage.setItem('eo-aj', ui.aj); } catch (e) {} render(); window.scrollTo(0, 0); },
   'dlg-close': () => { document.getElementById('dlg').close(); draft = null; },
   'dlg-arquivar': async b => {
     if (b.dataset.confirma !== '1') { b.dataset.confirma = '1'; b.textContent = 'Confirmar: arquivar'; return; }
