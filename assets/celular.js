@@ -183,7 +183,7 @@ function msg(tipo, c, extra) {
 }
 async function enviarWhats(c, tipo, texto) {
   if (!c.whatsapp) { toast('Cadastre o WhatsApp de ' + primeiro(c.nome) + ' primeiro.', 'bad'); return false; }
-  window.open(wa(c.whatsapp, texto), '_blank', 'noopener');
+  EO.abrirWhats(wa(c.whatsapp, texto));
   const r = await sb().from('contatos').insert({ loja_id: ctx.lojaId, cliente_id: c.id, tipo, mensagem: texto.slice(0, 1000) }).select().single();
   if (r.error) { falha(r.error); return true; }
   D.contatos.unshift(r.data); return true;
@@ -646,7 +646,7 @@ const A = {
   menu: () => abrirMenu(),
   instalar: async () => { if (!pedidoInstalar) { location.href = 'instalar.html'; return; } pedidoInstalar.prompt(); const r = await pedidoInstalar.userChoice; pedidoInstalar = null; if (r.outcome !== 'accepted') render(); },
   'instalar-fechar': () => { gravar('instalar-fechado', '1'); render(); },
-  'enviar-app': () => { window.open('https://wa.me/?text=' + encodeURIComponent(msgEquipe()), '_blank', 'noopener'); },
+  'enviar-app': () => { EO.abrirWhats('https://wa.me/?text=' + encodeURIComponent(msgEquipe())); },
   fechar: () => fecharSheet(),
   sair: () => { pararCamera(); EO.sair(); },
   'trocar-loja': async b => { ctx.lojaId = b.dataset.id; ctx.papel = ctx.lojas.find(x => x.loja.id === ctx.lojaId).papel; gravar('loja', ctx.lojaId); fecharSheet(); ui.carrinho = []; ui.feed = []; await atualizar(); },
