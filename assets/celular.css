@@ -94,6 +94,8 @@ button{cursor:pointer}
 .cam .ok-flash.on{opacity:1}
 .cam .cam-off{display:grid;gap:12px;justify-items:center;text-align:center;padding:24px;color:#f4e9e8}
 .cam .cam-off p{color:#c9b5b5;font-size:.86rem;max-width:30ch}
+.cam .cam-aviso{font-size:.78rem;color:#b9a3a4;max-width:32ch;line-height:1.4}
+.cam .cam-aviso a{color:#f0c9d0}
 .cam .cam-modo{position:absolute;left:12px;top:12px;background:rgba(0,0,0,.55);color:#fff;font-family:var(--f-display);font-size:.6rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;padding:6px 10px;border-radius:999px}
 .feed{display:grid;gap:6px}
 .feed-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
