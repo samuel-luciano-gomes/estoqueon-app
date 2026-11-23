@@ -132,7 +132,7 @@ window.EO = (function () {
   async function checarServidor() {
     try {
       var r = await cliente().rpc('sessao_ok');
-      if (!r.error && r.data === false) sair('prazo');
+      if (!r.error && r.data === false) sair('sessao');
     } catch (e) {}
   }
   function vigiarSessao() {

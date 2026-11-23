@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   if (/senha=ok/.test(location.search)) EO.mostrar(msg, 'good', 'Senha alterada. Entre com a nova senha.');
   else if (motivo === 'inatividade') EO.mostrar(msg, 'warn', 'Você saiu porque ficou ' + EO.PRAZO.inatividadeMin + ' minutos sem usar o sistema. Entre de novo para continuar.');
   else if (motivo === 'prazo') EO.mostrar(msg, 'warn', 'Por segurança, o login vale ' + EO.PRAZO.maxHoras + ' horas. Entre de novo para continuar.');
+  else if (motivo === 'sessao') EO.mostrar(msg, 'warn', 'Sua sessão terminou: passou de ' + EO.PRAZO.maxHoras + ' horas ou foi encerrada em outro aparelho. Entre de novo para continuar.');
 
   f.addEventListener('submit', async function (ev) {
     ev.preventDefault();
