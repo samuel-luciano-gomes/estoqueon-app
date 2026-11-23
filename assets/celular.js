@@ -80,6 +80,13 @@ let ui = {
 };
 const dona = () => ctx.papel === 'dona';
 if (NAV.some(([k]) => k === location.hash.slice(1))) ui.tab = location.hash.slice(1);
+/* ---------- instalar o app ---------- */
+const instalado = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+let pedidoInstalar = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); pedidoInstalar = e; if (ui.tab === 'inicio' && D) render(); });
+addEventListener('appinstalled', () => { pedidoInstalar = null; gravar('instalar-fechado', '1'); toast('App instalado na tela inicial', 'good'); if (D) render(); });
+const LINK_INSTALAR = new URL('instalar.html', location.href).href;
+const msgEquipe = () => 'Oi! Instale o app da ' + D.loja.nome + ' no seu celular para registrar vendas e cuidar do estoque: ' + LINK_INSTALAR;
 
 /* ---------- avisos ---------- */
 function toast(msg, kind) { const box = document.getElementById('toast'); const el = document.createElement('div'); el.className = 't' + (kind ? ' ' + kind : ''); el.textContent = msg; box.appendChild(el); setTimeout(() => el.remove(), kind === 'bad' ? 4500 : 2200); }
@@ -211,7 +218,9 @@ function vInicio() {
   const pv = posVenda(); const pend = pv.agradecer.length + pv.aniversario.length + pv.saudade.length;
   const baixos = D.produtos.filter(p => p.estoque <= p.estoque_minimo);
   const hr = new Date().getHours(); const saud = hr < 12 ? 'Bom dia' : hr < 18 ? 'Boa tarde' : 'Boa noite';
+  const avisoInstalar = !instalado() && ler('instalar-fechado', '0') !== '1' ? `<div class="card grid instalar"><div class="secao-t"><div style="display:flex;gap:12px;align-items:center"><img src="assets/icones/icone-192.png" alt="" width="44" height="44" style="border-radius:11px"><div><h3>Instale o app</h3><span class="small muted">Abre direto da tela inicial, sem navegador.</span></div></div><button class="m-icon" data-act="instalar-fechar" aria-label="Agora não">✕</button></div>${pedidoInstalar ? '<button class="btn primary" data-act="instalar">Instalar o app</button>' : '<a class="btn primary" href="instalar.html">Ver como instalar</a>'}</div>` : '';
   return `
+  ${avisoInstalar}
   <section class="hello"><span class="eyebrow">${new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' })}</span>
     <h1>${saud}${ctx.perfil.nome ? ', <em>' + esc(primeiro(ctx.perfil.nome)) + '</em>' : ''}</h1>
     <p>${vHoje.length ? `Hoje já foram <b>${vHoje.length} venda${vHoje.length > 1 ? 's' : ''}</b>, somando ${brl(vHoje.reduce((s, v) => s + v.total, 0))}.` : 'Nenhuma venda hoje ainda. Toque no leitor para registrar a primeira.'}</p></section>
@@ -622,10 +631,11 @@ function abrirMenu() {
   abrirSheet(`
   <div class="sheet-head"><div><span class="eyebrow">Conta</span><h2>${esc(ctx.perfil.nome || ctx.user.email)}</h2><span class="small muted">${esc(ctx.user.email)} · ${dona() ? 'dona' : 'vendedora'}</span></div><button class="m-icon" data-act="fechar" aria-label="Fechar">✕</button></div>
   ${ctx.lojas.length > 1 ? `<div class="grid"><h3>Trocar de loja</h3><div class="lista">${ctx.lojas.map(x => `<button class="crow" data-act="trocar-loja" data-id="${x.loja.id}"><span class="av">${esc(iniciais(x.loja.nome))}</span><span><b style="font-weight:500">${esc(x.loja.nome)}</b></span><span>${x.loja.id === ctx.lojaId ? '<span class="pill accent">aberta</span>' : ''}</span></button>`).join('')}</div></div>` : ''}
+  ${dona() ? '<button class="btn wa" data-act="enviar-app">Enviar o app para a equipe</button>' : ''}
+  ${!instalado() ? '<a class="btn" href="instalar.html">Instalar o app neste celular</a>' : ''}
   <a class="btn" href="app.html">Abrir o sistema completo</a>
   ${EO.botaoWhats('Falar com o suporte', 'Olá! Preciso de ajuda com o EstoqueOn (loja ' + D.loja.nome + ').')}
   ${ctx.master ? '<a class="btn" href="master.html">Painel master</a>' : ''}
-  <p class="small muted">Para instalar: no Android, menu do Chrome → <b>Instalar app</b>. No iPhone, Safari → Compartilhar → <b>Adicionar à Tela de Início</b>.</p>
   <button class="btn danger" data-act="sair">Sair</button>`);
 }
 
@@ -634,6 +644,9 @@ const A = {
   tab: b => { if (b.dataset.cf) ui.cfiltro = b.dataset.cf; irPara(b.dataset.k); },
   'ir-pos': () => { ui.cfiltro = 'pos'; irPara('clientes'); },
   menu: () => abrirMenu(),
+  instalar: async () => { if (!pedidoInstalar) { location.href = 'instalar.html'; return; } pedidoInstalar.prompt(); const r = await pedidoInstalar.userChoice; pedidoInstalar = null; if (r.outcome !== 'accepted') render(); },
+  'instalar-fechar': () => { gravar('instalar-fechado', '1'); render(); },
+  'enviar-app': () => { window.open('https://wa.me/?text=' + encodeURIComponent(msgEquipe()), '_blank', 'noopener'); },
   fechar: () => fecharSheet(),
   sair: () => { pararCamera(); EO.sair(); },
   'trocar-loja': async b => { ctx.lojaId = b.dataset.id; ctx.papel = ctx.lojas.find(x => x.loja.id === ctx.lojaId).papel; gravar('loja', ctx.lojaId); fecharSheet(); ui.carrinho = []; ui.feed = []; await atualizar(); },

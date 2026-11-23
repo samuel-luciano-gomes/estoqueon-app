@@ -78,7 +78,7 @@ let S = null;
 let ui = { tab: 'painel', mode: 'venda', cart: [], pag: 'vista', parc: 1, cliente: '', novoNome: '', novoWa: '', entrada: [], conf: {}, sel: [], filtro: 'todos', q: '', mes: null, vmes: 'todos', copias: {}, ultima: null, etiquetas: false, ocupado: false,
   hist: { tabela: 'todas', pag: 0, itens: null, fim: false }, equipe: null, aj: (function () { try { return localStorage.getItem('eo-aj') || 'marca'; } catch (e) { return 'marca'; } })() };
 const dona = () => ctx.papel === 'dona';
-const TABS = () => [['painel', 'Painel'], ['produtos', 'Produtos'], ['leitor', 'Leitor'], ['vendas', 'Vendas']]
+const TABS = () => [['painel', 'Painel'], ['produtos', 'Produtos'], ['vendas', 'Vendas']]
   .concat(dona() ? [['historico', 'Histórico']] : []).concat([['ajustes', 'Ajustes']]);
 const plano = () => ctx.planos.find(p => p.id === (S && S.loja.plano)) || { nome: 'Simples', max_pecas: 300, max_usuarias: 1, max_lojas: 1 };
 try { const t = localStorage.getItem('eo-tab'); if (t) ui.tab = t; } catch (e) {}
@@ -207,9 +207,9 @@ function vPainel() {
   const df = P.f ? (fat - P.f) / P.f * 100 : null;
   const primeiroNome = (ctx.perfil.nome || '').split(' ')[0];
   let frase;
-  if (!S.produtos.length) frase = 'Sua loja está pronta. Comece cadastrando as peças em <b>Produtos</b>; depois imprima as etiquetas e registre as vendas pelo <b>Leitor</b>.';
+  if (!S.produtos.length) frase = 'Sua loja está pronta. Comece cadastrando as peças em <b>Produtos</b>; depois imprima as etiquetas e registre as vendas pelo <a href="celular.html">app de celular</a>, lendo o QR das peças.';
   else if (vs.length) frase = `Em ${mesLongo(m)} foram <b>${vs.length} venda${vs.length > 1 ? 's' : ''}</b> somando <b>${brl(fat)}</b>${df != null ? `, ${Math.abs(df) < 0.5 ? 'igual a' : df > 0 ? pct(df) + ' acima de' : pct(-df) + ' abaixo de'} ${MESES_L[Number(mesAnt(m).slice(5, 7)) - 1]}` : ''}. ${abaixo.length || baixos.length || parados.length ? 'Há pontos pedindo sua atenção logo abaixo.' : 'Estoque e preços estão em ordem.'}`;
-  else frase = `Ainda não há vendas em ${mesLongo(m)}. Registre a primeira pelo <b>Leitor</b>.`;
+  else frase = `Ainda não há vendas em ${mesLongo(m)}. Registre a primeira pelo <a href="celular.html">app de celular</a>.`;
   const pl = plano();
   return `
   <section class="hello"><span class="ring" aria-hidden="true"></span>
@@ -401,7 +401,7 @@ function vVendas() {
   const tot = vs.reduce((s, v) => s + v.total, 0), luc = vs.reduce((s, v) => s + v.lucro, 0);
   const porCli = S.clientes.map(c => { const xs = S.vendas.filter(v => v.cliente === c.id); return { c, n: xs.length, t: xs.reduce((s, v) => s + v.total, 0), u: xs.map(v => v.data).sort().at(-1) }; }).sort((a, b) => b.t - a.t);
   return `
-  <div class="head"><div><span class="eyebrow">Histórico</span><h2>Vendas</h2><p class="muted">${vs.length} vendas · ${brl(tot)} · lucro estimado ${brl(luc)}</p></div>
+  <div class="head"><div><span class="eyebrow">Histórico</span><h2>Vendas</h2><p class="muted">${vs.length} vendas · ${brl(tot)} · lucro estimado ${brl(luc)}</p><p class="small muted">As vendas são registradas no <a href="celular.html">app de celular</a>, lendo o QR da etiqueta.</p></div>
     <div class="field"><label for="vmes">Período</label><select id="vmes" class="inp" data-bind="vmes"><option value="todos">Últimos 12 meses</option>${ms.map(k => `<option value="${k}" ${ui.vmes === k ? 'selected' : ''}>${mesLbl(k)}</option>`).join('')}</select></div></div>
   <div class="card tbl-wrap"><table class="tbl"><thead><tr><th>Data</th><th>#</th><th>Cliente</th><th>Itens</th><th>Pagamento</th><th class="r">Total</th><th class="r">Lucro</th></tr></thead><tbody>
     ${vs.map(v => { const ab = v.itens.some(i => i.preco < i.calc - 0.005); return `<tr><td class="num">${dmy(v.data)}</td><td class="num muted">${v.id}</td><td>${esc(cli(S, v.cliente)?.nome || '')}</td><td>${v.itens.map(i => i.qtd + '× ' + esc(prod(S, i.sku)?.nome || i.sku)).join('<br>')}${ab ? '<br><span class="pill bad">abaixo do calculado</span>' : ''}</td><td>${v.pag === 'cartao' ? 'Cartão ' + v.parc + 'x' : 'À vista'}</td><td class="r num">${brl(v.total)}</td><td class="r num" style="color:${v.lucro < 0 ? 'var(--bad)' : 'inherit'}">${brl(v.lucro)}</td></tr>`; }).join('') || '<tr><td colspan="7" class="empty">Nenhuma venda ainda.</td></tr>'}
@@ -508,10 +508,13 @@ function vEquipe() {
     <form class="grid g3" id="form-convite" style="align-items:end"><div class="field"><label for="cv-email">E-mail da pessoa</label><input id="cv-email" class="inp" type="email" autocomplete="off" required></div><div class="field"><label for="cv-papel">Papel</label><select id="cv-papel" class="inp"><option value="vendedora">Vendedora</option><option value="dona">Dona</option></select></div><button class="btn primary" type="submit">Convidar</button></form>
     <span class="hint">Depois de convidar, envie o endereço <span class="mono">${esc(EO.base())}cadastro.html</span> para ela.</span></div>`
     : `<div class="alert warn small"><span>O plano ${esc(pl.nome)} chegou ao limite de usuárias. <a class="link-wa" href="${WA_PLANO}" target="_blank" rel="noopener">${EO.WA_ICONE}Fale com a gente para ampliar</a>.</span></div>`}
+  <div class="card grid">${ajTitulo('App de celular da equipe', 'As vendas, as entradas e a conferência são feitas pelo app, lendo o QR das etiquetas. Envie o link para cada pessoa instalar.')}
+    <div class="acoes"><a class="btn-wa" href="https://wa.me/?text=${encodeURIComponent('Oi! Instale o app da ' + S.loja.nome + ' no seu celular para registrar vendas e cuidar do estoque: ' + EO.base() + 'instalar.html')}" target="_blank" rel="noopener">${EO.WA_ICONE}<span>Enviar o app pelo WhatsApp</span></a><button class="btn" data-act="copiar-app">Copiar link</button></div>
+    <span class="hint mono">${esc(EO.base())}instalar.html</span></div>
   <div class="card grid">${ajTitulo('O que cada papel pode fazer', '')}
     <div class="grid g2">
       <div class="papel"><b>Dona</b><ul><li>Tudo o que a vendedora faz</li><li>Muda preços, insumos e a marca</li><li>Convida e remove pessoas</li><li>Vê o histórico de alterações</li><li>Importa nota fiscal e envia fotos</li></ul></div>
-      <div class="papel"><b>Vendedora</b><ul><li>Registra vendas pelo leitor</li><li>Dá entrada e saída no estoque</li><li>Faz a conferência da vitrine</li><li>Lança no caixa e cuida do pós-venda</li></ul></div>
+      <div class="papel"><b>Vendedora</b><ul><li>Registra vendas pelo app de celular</li><li>Dá entrada e saída no estoque</li><li>Faz a conferência da vitrine</li><li>Lança no caixa e cuida do pós-venda</li></ul></div>
     </div></div>`;
 }
 function vMarca() {
@@ -741,6 +744,7 @@ const A = {
   },
   'convite-rm': async b => { const r = await sb().from('convites').delete().eq('id', b.dataset.id); if (r.error) return falha(r.error); carregarEquipe(); },
   'abrir-loja': b => trocarLoja(b.dataset.id),
+  'copiar-app': async b => { try { await navigator.clipboard.writeText(EO.base() + 'instalar.html'); b.textContent = 'Link copiado'; } catch (e) { toast('Não consegui copiar. Selecione o link abaixo.', 'bad'); } },
   aj: b => { ui.aj = b.dataset.k; try { localStorage.setItem('eo-aj', ui.aj); } catch (e) {} render(); window.scrollTo(0, 0); },
   'dlg-close': () => { document.getElementById('dlg').close(); draft = null; },
   'dlg-arquivar': async b => {
