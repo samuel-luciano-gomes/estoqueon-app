@@ -52,10 +52,10 @@ button{cursor:pointer}
 
 .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:.8rem;color:var(--muted);white-space:nowrap}
+.chip{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:3px;padding:7px 13px;font-size:.8rem;color:var(--muted);white-space:nowrap}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
-.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line);border-radius:8px;padding:3px;gap:3px;background:var(--surface)}
-.seg button{border:0;background:none;padding:10px 4px;border-radius:6px;font-family:var(--f-display);font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:1px solid var(--line);border-radius:3px;padding:3px;gap:3px;background:var(--surface)}
+.seg button{border:0;background:none;padding:10px 4px;border-radius:2px;font-family:var(--f-display);font-size:.62rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .seg button svg{width:18px;height:18px;display:block;margin:0 auto}
 .pill{display:inline-flex;align-items:center;gap:4px;font-size:.7rem;font-weight:500;padding:2px 8px;border-radius:999px;white-space:nowrap}
@@ -112,7 +112,7 @@ button{cursor:pointer}
 .kv{display:grid;gap:6px;background:var(--surface-2);border-radius:10px;padding:12px;font-size:.9rem}
 .kv div{display:flex;justify-content:space-between;gap:10px}
 .kv .sep{border-top:1px solid var(--line);padding-top:6px}
-.passo{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.passo{display:inline-flex;align-items:center;border:1px solid var(--line);border-radius:3px;overflow:hidden}
 .passo button{border:0;background:none;width:44px;height:40px;font-size:1.2rem;color:var(--ink)}
 .passo span{min-width:44px;text-align:center;font-family:var(--f-display);font-size:1.1rem}
 .qrbox{display:grid;justify-items:center;gap:6px;padding:12px;background:#fff;border-radius:10px;color:#1A1517}

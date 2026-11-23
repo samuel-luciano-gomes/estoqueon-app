@@ -113,14 +113,14 @@ a{color:var(--accent)}
   .auth-card form{gap:14px}
   .auth-card .field{gap:6px}
   .auth-card .field label{font-family:var(--f-body);font-size:.88rem;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink)}
-  .auth-card .inp{min-height:52px;font-size:16px;border-radius:12px;background:var(--surface-2);border-color:transparent;padding:14px 16px}
+  .auth-card .inp{min-height:52px;font-size:16px;border-radius:3px;background:var(--surface-2);border-color:transparent;padding:14px 16px}
   .auth-card .inp:focus{background:var(--surface);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
   .auth-card .inp::placeholder{color:var(--muted);opacity:.8}
   .auth-card .pass-wrap .inp{padding-right:92px}
   .auth-card .pass-wrap button{font-family:var(--f-body);font-size:.88rem;font-weight:500;letter-spacing:0;text-transform:none;color:var(--accent);padding:10px 12px}
-  .auth-card .btn{min-height:52px;border-radius:14px;font-family:var(--f-body);font-size:1rem;font-weight:600;letter-spacing:0;text-transform:none}
+  .auth-card .btn{min-height:52px;border-radius:3px;font-family:var(--f-body);font-size:1rem;font-weight:600;letter-spacing:0;text-transform:none}
   .auth-card .btn.ghost{color:var(--accent);min-height:44px}
-  .auth-card .alert{border-radius:12px}
+  .auth-card .alert{border-radius:3px}
   .auth-card .check{font-size:.9rem;align-items:center}
   .auth-card .check input{width:22px;height:22px;margin:0}
   .auth-card .hint{font-size:.82rem}
@@ -129,7 +129,7 @@ a{color:var(--accent)}
   .auth-foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--line);font-size:.95rem}
 }
 /* botão e link do WhatsApp (suporte) */
-.btn-wa{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:999px;background:#1F8F55;color:#fff;font-family:var(--f-body);font-size:.92rem;font-weight:500;text-decoration:none;white-space:nowrap;transition:filter .15s}
+.btn-wa{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border-radius:3px;background:#1F8F55;color:#fff;font-family:var(--f-body);font-size:.92rem;font-weight:500;text-decoration:none;white-space:nowrap;transition:filter .15s}
 .btn-wa:hover{filter:brightness(1.08)}
 .btn-wa svg,.link-wa svg{width:18px;height:18px;flex:none}
 .link-wa{display:inline-flex;align-items:center;gap:7px;color:#1F8F55;font-weight:500;text-decoration:none}
