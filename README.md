@@ -32,7 +32,7 @@ O EstoqueOn é um **site estático com um banco que guarda as regras**. Não há
 - HTML, CSS e JavaScript puros, sem framework e sem etapa de compilação. Cada tela é um arquivo (veja **Páginas**).
 - Hospedado no **Cloudflare Pages** (`estoqueon-app.pages.dev`), ligado ao repositório privado no GitHub. Cada `git push` na `main` publica sozinho. O comando de build é `bash ferramentas/publicar.sh`, que copia para `dist/` só as páginas, `assets/`, o manifesto, o `sw.js` e o `_headers`; banco, ferramentas e documentação nunca vão para o site.
 - `_headers` define cabeçalhos de segurança (câmera só no próprio site, sem iframe, nosniff) e `404.html` é a página de endereço inexistente. O Cloudflare serve as páginas sem `.html` (`/celular`), e o código trata os dois formatos.
-- O endereço antigo (`samuel-luciano-gomes.github.io/estoqueon`) é mantido por um repositório público separado, só com redirecionamentos para o endereço novo.
+- Código no repositório **privado** `samuel-luciano-gomes/estoqueon-app`. O endereço antigo (`samuel-luciano-gomes.github.io/estoqueon`) é mantido pelo repositório público `samuel-luciano-gomes/estoqueon`, que só tem páginas de redirecionamento (pasta local `C:minetrackestoqueon-redirecionamento`); elas mantêm a página, os parâmetros e o trecho depois de `#`.
 - O app de celular é um **PWA**: `manifest.webmanifest`, ícones em `assets/icones/` e `sw.js`, que guarda telas e fontes no aparelho. Dados da loja e chamadas ao Supabase nunca entram nesse cache.
 - Fontes e ícones são servidos pelo próprio site. De fora vêm só três bibliotecas, com versão fixa: `@supabase/supabase-js` (jsDelivr), `qrcodejs` (cdnjs) e `jsQR` (jsDelivr).
 
