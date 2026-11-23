@@ -3,6 +3,9 @@ window.EO = (function () {
   var CFG = window.ESTOQUEON_SUPABASE || {};
   var sb = null;
 
+  // Nome da página atual sem extensão (o Cloudflare Pages serve /celular no lugar de /celular.html).
+  function paginaAtual() { return ((location.pathname.split('/').pop() || 'index').replace(/\.html$/, '') || 'index') + '.html'; }
+
   function cliente() {
     if (sb) return sb;
     if (!CFG.url || !CFG.key || !window.supabase) throw new Error('Configuração do Supabase ausente.');
@@ -78,7 +81,7 @@ window.EO = (function () {
     var s = null;
     try { s = await sessao(); } catch (e) { s = null; }
     if (!s) {
-      var pagina = location.pathname.split('/').pop() || 'app.html';
+      var pagina = paginaAtual();
       location.replace('entrar.html' + (pagina !== 'app.html' ? '?volta=' + encodeURIComponent(pagina) : ''));
       return null;
     }
@@ -89,7 +92,7 @@ window.EO = (function () {
     pararVigia();
     try { await cliente().auth.signOut({ scope: 'local' }); } catch (e) {}
     try { localStorage.removeItem('eo-login-em'); localStorage.removeItem('eo-ativo-em'); } catch (e) {}
-    var pagina = location.pathname.split('/').pop() || 'app.html';
+    var pagina = paginaAtual();
     var q = [];
     if (motivo) q.push('motivo=' + motivo);
     if (motivo && pagina !== 'app.html' && pagina !== 'entrar.html') q.push('volta=' + encodeURIComponent(pagina));

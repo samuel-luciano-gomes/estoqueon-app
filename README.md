@@ -2,7 +2,7 @@
 
 Sistema de estoque, preço e vendas para lojas de semijoias e acessórios, com a marca e as cores de cada loja.
 
-- **Site:** https://samuel-luciano-gomes.github.io/estoqueon/
+- **Site:** https://estoqueon-app.pages.dev/
 - **Banco e login:** Supabase (projeto `estoqueon`)
 - **Contato comercial:** WhatsApp (31) 97310-9443
 
@@ -30,7 +30,9 @@ O EstoqueOn é um **site estático com um banco que guarda as regras**. Não há
 ### Front-end
 
 - HTML, CSS e JavaScript puros, sem framework e sem etapa de compilação. Cada tela é um arquivo (veja **Páginas**).
-- Publicação automática a cada `git push` na branch `main`.
+- Hospedado no **Cloudflare Pages** (`estoqueon-app.pages.dev`), ligado ao repositório privado no GitHub. Cada `git push` na `main` publica sozinho. O comando de build é `bash ferramentas/publicar.sh`, que copia para `dist/` só as páginas, `assets/`, o manifesto, o `sw.js` e o `_headers`; banco, ferramentas e documentação nunca vão para o site.
+- `_headers` define cabeçalhos de segurança (câmera só no próprio site, sem iframe, nosniff) e `404.html` é a página de endereço inexistente. O Cloudflare serve as páginas sem `.html` (`/celular`), e o código trata os dois formatos.
+- O endereço antigo (`samuel-luciano-gomes.github.io/estoqueon`) é mantido por um repositório público separado, só com redirecionamentos para o endereço novo.
 - O app de celular é um **PWA**: `manifest.webmanifest`, ícones em `assets/icones/` e `sw.js`, que guarda telas e fontes no aparelho. Dados da loja e chamadas ao Supabase nunca entram nesse cache.
 - Fontes e ícones são servidos pelo próprio site. De fora vêm só três bibliotecas, com versão fixa: `@supabase/supabase-js` (jsDelivr), `qrcodejs` (cdnjs) e `jsQR` (jsDelivr).
 
@@ -56,7 +58,7 @@ A chave do Supabase que está no site é **pública de propósito**; quem proteg
 
 | Serviço | Plano | Capacidade |
 | --- | --- | --- |
-| Hospedagem do site | Grátis | Site e app |
+| Cloudflare Pages | Grátis (uso comercial permitido) | Site e app, sem limite de tráfego |
 | Supabase | Free | Banco de 500 MB, 1 GB de fotos, 50 mil usuários ativos por mês |
 | Domínio e e-mail | Ainda não contratados | E-mails saem no padrão do Supabase |
 
@@ -120,7 +122,7 @@ insert into public.masters (user_id) select id from auth.users where email = 'em
 
 Em **Authentication**:
 
-- **URL Configuration:** Site URL `https://samuel-luciano-gomes.github.io/estoqueon/`; Redirect URLs `…/estoqueon/app.html`, `…/estoqueon/nova-senha.html` e `http://localhost:4330/*`.
+- **URL Configuration:** Site URL `https://estoqueon-app.pages.dev/`; Redirect URLs `https://estoqueon-app.pages.dev/**` e `http://localhost:4330/**`.
 - **Sign In / Providers → Email:** confirmação de e-mail ligada, senha mínima de 10 caracteres com minúscula, maiúscula, número e símbolo; troca de senha segura ligada.
 - **Emails → Templates:** os modelos estão em `supabase/templates/` (assuntos em `assuntos.json`). Para mudar o visual, edite `ferramentas/gerar-emails.js` e rode `node ferramentas/gerar-emails.js`. O Supabase só libera a edição dos modelos depois que o SMTP próprio estiver ligado (veja abaixo); até lá, os e-mails saem com o texto padrão do Supabase.
 

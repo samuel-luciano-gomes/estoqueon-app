@@ -3,10 +3,10 @@
 project_id = "estoqueon"
 
 [auth]
-site_url = "https://samuel-luciano-gomes.github.io/estoqueon/"
+site_url = "https://estoqueon-app.pages.dev/"
 additional_redirect_urls = [
-  "https://samuel-luciano-gomes.github.io/estoqueon/app.html",
-  "https://samuel-luciano-gomes.github.io/estoqueon/nova-senha.html",
+  "https://estoqueon-app.pages.dev/app.html",
+  "https://estoqueon-app.pages.dev/nova-senha.html",
   "http://localhost:4330/app.html",
   "http://localhost:4330/nova-senha.html"
 ]
