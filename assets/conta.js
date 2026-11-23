@@ -97,9 +97,9 @@ window.EO = (function () {
   }
 
   /* ---------- prazo do login ----------
-     Inatividade: sem tocar, digitar ou rolar por 30 minutos, sai (aviso 1 minuto antes).
+     Inatividade: sem tocar, digitar ou rolar por 1 hora, sai (aviso 1 minuto antes).
      Prazo máximo: 12 horas depois de entrar, pede login de novo (o banco também recusa depois disso). */
-  var PRAZO = { inatividadeMin: 30, avisoSeg: 60, maxHoras: 12, checarServidorMin: 5 };
+  var PRAZO = { inatividadeMin: 60, avisoSeg: 60, maxHoras: 12, checarServidorMin: 5 };
   var vig = { timer: 0, servidor: 0, aviso: null, ultimoToque: 0 };
   function agora() { return Date.now(); }
   function lerNum(k) { try { return Number(localStorage.getItem(k)) || 0; } catch (e) { return 0; } }

@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async function () {
   try { if (await EO.sessao()) { location.replace(EO.destino()); return; } } catch (e) { EO.mostrar(msg, 'warn', EO.erro(e)); }
   var motivo = new URLSearchParams(location.search).get('motivo');
   if (/senha=ok/.test(location.search)) EO.mostrar(msg, 'good', 'Senha alterada. Entre com a nova senha.');
-  else if (motivo === 'inatividade') EO.mostrar(msg, 'warn', 'Você saiu porque ficou ' + EO.PRAZO.inatividadeMin + ' minutos sem usar o sistema. Entre de novo para continuar.');
+  else if (motivo === 'inatividade') EO.mostrar(msg, 'warn', 'Você saiu porque ficou ' + (EO.PRAZO.inatividadeMin % 60 ? EO.PRAZO.inatividadeMin + ' minutos' : (EO.PRAZO.inatividadeMin / 60 === 1 ? '1 hora' : EO.PRAZO.inatividadeMin / 60 + ' horas')) + ' sem usar o sistema. Entre de novo para continuar.');
   else if (motivo === 'prazo') EO.mostrar(msg, 'warn', 'Por segurança, o login vale ' + EO.PRAZO.maxHoras + ' horas. Entre de novo para continuar.');
   else if (motivo === 'sessao') EO.mostrar(msg, 'warn', 'Sua sessão terminou: passou de ' + EO.PRAZO.maxHoras + ' horas ou foi encerrada em outro aparelho. Entre de novo para continuar.');
 

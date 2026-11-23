@@ -4,7 +4,7 @@
 --   * foi aberta há mais de 12 horas (é preciso entrar de novo), ou
 --   * foi encerrada (Sair, "Sair de todos os aparelhos", troca de senha) — vale na hora,
 --     sem esperar o token de 1 hora vencer.
--- A saída por inatividade (30 minutos) é feita pelo site, que também chama sessao_ok().
+-- A saída por inatividade (1 hora) é feita pelo site, que também chama sessao_ok().
 
 create or replace function public.sessao_valida() returns boolean
 language sql stable security definer set search_path = '' as $$
