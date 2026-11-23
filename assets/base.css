@@ -92,10 +92,41 @@ a{color:var(--accent)}
 .meter span{display:block;height:100%;width:0;background:var(--bad);transition:width .2s,background .2s}
 .check{display:flex;gap:10px;align-items:flex-start;font-size:.88rem;color:var(--muted)}
 .check input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:none}
+.auth-app{display:none}
+.auth-sub{color:var(--muted)}
+
+/* No celular, as telas de conta seguem o padrão dos apps (Android/iOS): ícone do app no topo, título centralizado,
+   campos altos e arredondados, botão largo e o link para a outra tela no rodapé. */
 @media (max-width:860px){
-  .auth{grid-template-columns:minmax(0,1fr)}
-  .auth-side{border-right:0;border-bottom:1px solid var(--line);padding:24px max(16px,env(safe-area-inset-right,0px)) 24px max(16px,env(safe-area-inset-left,0px));gap:16px}
-  .auth-side ul,.auth-side::after{display:none}
-  .auth-side h1{font-size:1.5rem;max-width:none}
+  body{background:var(--surface)}
+  body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+  .auth{grid-template-columns:minmax(0,1fr);min-height:100vh;min-height:100svh}
+  .auth-side{display:none}
+  .auth-main{place-items:stretch;padding-block:calc(20px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-bottom,0px));padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px))}
+  .auth-card{width:100%;max-width:440px;margin:0 auto;display:flex;flex-direction:column;gap:18px;min-height:calc(100svh - 36px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}
+  .auth-app{display:grid;justify-items:center;gap:10px;padding-top:16px;font-family:var(--f-display);font-size:1rem;font-weight:400;letter-spacing:.02em}
+  .auth-app b{font-weight:600;color:var(--accent)}
+  .auth-app img{width:76px;height:76px;border-radius:20px;box-shadow:0 12px 28px -14px rgba(90,35,45,.55),0 0 0 1px var(--line)}
+  .auth-titulo{text-align:center;display:grid;gap:6px}
+  .auth-titulo .eyebrow{display:none}
+  .auth-card h2{font-family:var(--f-display);font-size:1.7rem;font-weight:600;letter-spacing:-.02em}
+  .auth-card>p.muted{text-align:center}
+  .auth-card form{gap:14px}
+  .auth-card .field{gap:6px}
+  .auth-card .field label{font-family:var(--f-body);font-size:.88rem;font-weight:500;letter-spacing:0;text-transform:none;color:var(--ink)}
+  .auth-card .inp{min-height:52px;font-size:16px;border-radius:12px;background:var(--surface-2);border-color:transparent;padding:14px 16px}
+  .auth-card .inp:focus{background:var(--surface);border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .auth-card .inp::placeholder{color:var(--muted);opacity:.8}
+  .auth-card .pass-wrap .inp{padding-right:92px}
+  .auth-card .pass-wrap button{font-family:var(--f-body);font-size:.88rem;font-weight:500;letter-spacing:0;text-transform:none;color:var(--accent);padding:10px 12px}
+  .auth-card .btn{min-height:52px;border-radius:14px;font-family:var(--f-body);font-size:1rem;font-weight:600;letter-spacing:0;text-transform:none}
+  .auth-card .btn.ghost{color:var(--accent);min-height:44px}
+  .auth-card .alert{border-radius:12px}
+  .auth-card .check{font-size:.9rem;align-items:center}
+  .auth-card .check input{width:22px;height:22px;margin:0}
+  .auth-card .hint{font-size:.82rem}
+  .auth-card .rules{font-size:.82rem}
+  .auth-card a{font-weight:500;text-decoration:none}
+  .auth-foot{margin-top:auto;padding-top:16px;border-top:1px solid var(--line);font-size:.95rem}
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
